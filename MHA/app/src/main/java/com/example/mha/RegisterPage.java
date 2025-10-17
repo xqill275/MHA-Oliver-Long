@@ -17,6 +17,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class RegisterPage extends AppCompatActivity {
     Button BackBtn, RegisterBtn;
@@ -46,31 +47,84 @@ public class RegisterPage extends AppCompatActivity {
         RegisterBtn.setOnClickListener(V -> ValidateForm());
 
         Log.e("nhsNumTest", String.valueOf(verifyNhsNum("0008700338")));
-        Log.e("nhsNumTest", String.valueOf(verifyNhsNum("8434765919"))); // known valid example
+        Log.e("nhsNumTest", String.valueOf(verifyNhsNum("9434765919"))); // known valid example
     }
 
     public void ValidateForm() {
-        String fullNameText = FullName.getText().toString();
-        String email = EmailText.getText().toString();
-        String nhsText = NHSnumber.getText().toString();
-        String dobText = DateOfBirth.getText().toString();
-        String phoneText = PhoneNumber.getText().toString();
+        String fullNameText = FullName.getText().toString().trim();
+        String email = EmailText.getText().toString().trim();
+        String nhsText = NHSnumber.getText().toString().trim();
+        String dobText = DateOfBirth.getText().toString().trim();
+        String phoneText = PhoneNumber.getText().toString().trim();
+        AppDatabase db = AppDatabase.getInstance(this);
 
+        // Empty field check
         if (TextUtils.isEmpty(fullNameText) || TextUtils.isEmpty(email) ||
                 TextUtils.isEmpty(nhsText) || TextUtils.isEmpty(dobText) || TextUtils.isEmpty(phoneText)) {
             Toast.makeText(this, "One or more fields are empty!", Toast.LENGTH_LONG).show();
             return;
         }
 
-        // Only parse numbers after confirming all fields are filled
-        int nhsNum = Integer.parseInt(nhsText);
-        int dob = Integer.parseInt(dobText);
-        int phoneNum = Integer.parseInt(phoneText);
-
-        if (!verifyNhsNum(nhsText)) {
-            Toast.makeText(this, "NHS number is not valid", Toast.LENGTH_LONG).show();
+        // Email format check
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Toast.makeText(this, "Please enter a valid email address.", Toast.LENGTH_LONG).show();
             return;
         }
+        // duplicate email check
+        if (db.usersDao().getUserByEmail(email) != null) {
+            Toast.makeText(this, "Email already registered!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // NHS number length check
+        if (nhsText.length() != 10) {
+            Toast.makeText(this, "NHS number must be exactly 10 digits.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (!nhsText.matches("\\d+")) {
+            Toast.makeText(this, "NHS number must contain only digits.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (!phoneText.matches("\\d+")) {
+            Toast.makeText(this, "Phone number must contain only digits.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // NHS algorithm check
+        if (!verifyNhsNum(nhsText)) {
+            Toast.makeText(this, "NHS number is not valid.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // DOB format check (e.g. DD/MM/YYYY)
+        if (!dobText.matches("^\\d{2}/\\d{2}/\\d{4}$")) {
+            Toast.makeText(this, "Please use format DD/MM/YYYY for date of birth.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // Phone number length check
+        if (!phoneText.matches("^\\d{10,11}$")) {
+            Toast.makeText(this, "Please enter a valid 10–11 digit phone number.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+
+        // upload new users to database:
+
+        UserEntity user = new UserEntity();
+        user.fullName = fullNameText;
+        user.email = email;
+        user.NhsNum = nhsText;
+        user.DOB = dobText;
+        user.phoneNum = phoneText;
+
+        db.usersDao().insert(user);
+        Toast.makeText(this, "user registered!!!", Toast.LENGTH_LONG).show();
+        List<UserEntity> users = db.usersDao().getAllUsers();
+        Log.d("DB", "Users: " + users.size());
+
     }
 
     // Converts a numeric string into a list of its individual digits

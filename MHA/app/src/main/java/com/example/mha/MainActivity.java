@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,8 +12,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
     Button registerBtn;
+    TextView userListText;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         registerBtn = findViewById(R.id.RegisterButton);
+        userListText = findViewById(R.id.UserListText);
 
         registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -33,5 +38,23 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        AppDatabase db = AppDatabase.getInstance(this);
+        List<UserEntity> users = db.usersDao().getAllUsers();
+
+        if (users.isEmpty()) {
+            userListText.setText("No users registered yet.");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (UserEntity user : users) {
+                sb.append("Name: ").append(user.fullName)
+                        .append("\nEmail: ").append(user.email)
+                        .append("\nNHS: ").append(user.NhsNum)
+                        .append("\nDOB: ").append(user.DOB)
+                        .append("\nPhone: ").append(user.phoneNum)
+                        .append("\n---------------------\n");
+            }
+            userListText.setText(sb.toString());
+        }
     }
 }
