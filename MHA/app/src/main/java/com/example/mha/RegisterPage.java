@@ -44,13 +44,19 @@ public class RegisterPage extends AppCompatActivity {
         PhoneNumber = findViewById(R.id.Phone_Number);
 
         BackBtn.setOnClickListener(v -> startActivity(new Intent(RegisterPage.this, MainActivity.class)));
-        RegisterBtn.setOnClickListener(V -> ValidateForm());
+        RegisterBtn.setOnClickListener(V -> {
+            try {
+                ValidateForm();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         Log.e("nhsNumTest", String.valueOf(verifyNhsNum("0008700338")));
         Log.e("nhsNumTest", String.valueOf(verifyNhsNum("9434765919"))); // known valid example
     }
 
-    public void ValidateForm() {
+    public void ValidateForm() throws Exception {
         String fullNameText = FullName.getText().toString().trim();
         String email = EmailText.getText().toString().trim();
         String nhsText = NHSnumber.getText().toString().trim();
@@ -114,11 +120,11 @@ public class RegisterPage extends AppCompatActivity {
         // upload new users to database:
 
         UserEntity user = new UserEntity();
-        user.fullName = fullNameText;
-        user.email = email;
-        user.NhsNum = nhsText;
-        user.DOB = dobText;
-        user.phoneNum = phoneText;
+        user.fullName = CryptClass.encrypt(fullNameText);
+        user.email = CryptClass.encrypt(email);
+        user.NhsNum = CryptClass.encrypt(nhsText);
+        user.DOB = CryptClass.encrypt(dobText);
+        user.phoneNum = CryptClass.encrypt(phoneText);
 
         db.usersDao().insert(user);
         Toast.makeText(this, "user registered!!!", Toast.LENGTH_LONG).show();
