@@ -21,7 +21,7 @@ import java.util.List;
 
 public class RegisterPage extends AppCompatActivity {
     Button BackBtn, RegisterBtn;
-    TextView FullName, EmailText, DateOfBirth, NHSnumber, PhoneNumber;
+    TextView FullName, EmailText, DateOfBirth, NHSnumber, PhoneNumber, RoleIDText;
 
 
     @Override
@@ -42,6 +42,7 @@ public class RegisterPage extends AppCompatActivity {
         NHSnumber = findViewById(R.id.NHS_Number);
         EmailText = findViewById(R.id.Email);
         PhoneNumber = findViewById(R.id.Phone_Number);
+        RoleIDText = findViewById(R.id.RoleIDEdit);
 
         BackBtn.setOnClickListener(v -> startActivity(new Intent(RegisterPage.this, MainActivity.class)));
         RegisterBtn.setOnClickListener(V -> {
@@ -62,11 +63,12 @@ public class RegisterPage extends AppCompatActivity {
         String nhsText = NHSnumber.getText().toString().trim();
         String dobText = DateOfBirth.getText().toString().trim();
         String phoneText = PhoneNumber.getText().toString().trim();
+        String RoleText = RoleIDText.getText().toString().trim();
         AppDatabase db = AppDatabase.getInstance(this);
 
         // Empty field check
         if (TextUtils.isEmpty(fullNameText) || TextUtils.isEmpty(email) ||
-                TextUtils.isEmpty(nhsText) || TextUtils.isEmpty(dobText) || TextUtils.isEmpty(phoneText)) {
+                TextUtils.isEmpty(nhsText) || TextUtils.isEmpty(dobText) || TextUtils.isEmpty(phoneText)){
             Toast.makeText(this, "One or more fields are empty!", Toast.LENGTH_LONG).show();
             return;
         }
@@ -85,6 +87,11 @@ public class RegisterPage extends AppCompatActivity {
         // NHS number length check
         if (nhsText.length() != 10) {
             Toast.makeText(this, "NHS number must be exactly 10 digits.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (!TextUtils.isEmpty(RoleText) && RoleText.length() != 4) {
+            Toast.makeText(this, "Your role ID should be 4 digits long", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -125,11 +132,21 @@ public class RegisterPage extends AppCompatActivity {
         user.NhsNum = CryptClass.encrypt(nhsText);
         user.DOB = CryptClass.encrypt(dobText);
         user.phoneNum = CryptClass.encrypt(phoneText);
+        if (TextUtils.isEmpty(RoleText)) {
+            user.role = CryptClass.encrypt("Patient");
+        } else if (RoleText.equals("1111")) { // CHANGE THIS AS SOON AS YOU FIND A BETTER WAY TO STORE THIS
+            user.role = CryptClass.encrypt("Admin");
+        } else {
+            Toast.makeText(this, "Not known roleID", Toast.LENGTH_LONG).show();
+            return;
+        }
 
         db.usersDao().insert(user);
         Toast.makeText(this, "user registered!!!", Toast.LENGTH_LONG).show();
         List<UserEntity> users = db.usersDao().getAllUsers();
         Log.d("DB", "Users: " + users.size());
+
+        startActivity(new Intent(RegisterPage.this, MainActivity.class));
 
     }
 

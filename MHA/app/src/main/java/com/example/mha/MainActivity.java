@@ -2,6 +2,7 @@ package com.example.mha;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -64,13 +65,17 @@ public class MainActivity extends AppCompatActivity {
                     .append("\nNHS: ").append(user.NhsNum)
                     .append("\nDOB: ").append(user.DOB)
                     .append("\nPhone: ").append(user.phoneNum)
+                    .append("\nRole: ").append(user.role)
                     .append("\n---------------------\n");
+            Log.e("Test", user.fullName);
         }
         userListText.setText(sb.toString());
+
     }
 
     private void displayUsersDecrypted(AppDatabase db) {
         List<UserEntity> users = db.usersDao().getAllUsers();
+
 
         if (users.isEmpty()) {
             userListText.setText("No users registered yet.");
@@ -84,12 +89,14 @@ public class MainActivity extends AppCompatActivity {
             String decryptedNhs = CryptClass.decrypt(user.NhsNum);
             String decryptedDob = CryptClass.decrypt(user.DOB);
             String decryptedPhone = CryptClass.decrypt(user.phoneNum);
+            String decryptedRole = CryptClass.decrypt(user.role);
 
             sb.append("Name: ").append(decryptedName)
                     .append("\nEmail: ").append(decryptedEmail)
                     .append("\nNHS: ").append(decryptedNhs)
                     .append("\nDOB: ").append(decryptedDob)
                     .append("\nPhone: ").append(decryptedPhone)
+                    .append("\nRole: ").append(decryptedRole)
                     .append("\n---------------------\n");
         }
         userListText.setText(sb.toString());

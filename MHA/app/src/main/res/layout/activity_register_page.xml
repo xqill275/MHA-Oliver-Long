@@ -11,11 +11,11 @@
         android:id="@+id/Full_Name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="95dp"
+        android:layout_marginStart="86dp"
+        android:layout_marginTop="143dp"
         android:ems="10"
         android:hint="Full Name"
         android:inputType="text"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -23,7 +23,7 @@
         android:id="@+id/Date_of_birth"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="41dp"
+        android:layout_marginTop="45dp"
         android:ems="10"
         android:hint="Date of Birth"
         android:inputType="date"
@@ -34,47 +34,44 @@
         android:id="@+id/NHS_Number"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="49dp"
-        android:layout_marginEnd="2dp"
+        android:layout_marginTop="33dp"
         android:ems="10"
         android:hint="NHS Number"
         android:inputType="number"
-        app:layout_constraintEnd_toEndOf="@+id/Date_of_birth"
+        app:layout_constraintStart_toStartOf="@+id/Date_of_birth"
         app:layout_constraintTop_toBottomOf="@+id/Date_of_birth" />
 
     <EditText
         android:id="@+id/Email"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:layout_marginBottom="43dp"
+        android:layout_marginTop="27dp"
         android:ems="10"
         android:hint="Email"
         android:inputType="textEmailAddress"
-        app:layout_constraintBottom_toTopOf="@+id/Phone_Number"
-        app:layout_constraintStart_toStartOf="@+id/Phone_Number" />
+        app:layout_constraintStart_toStartOf="@+id/NHS_Number"
+        app:layout_constraintTop_toBottomOf="@+id/NHS_Number" />
 
     <EditText
         android:id="@+id/Phone_Number"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="86dp"
-        android:layout_marginBottom="223dp"
+        android:layout_marginTop="36dp"
         android:ems="10"
         android:hint="Phone Number"
         android:inputType="phone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="@+id/Email"
+        app:layout_constraintTop_toBottomOf="@+id/Email" />
 
     <Button
         android:id="@+id/Register_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="46dp"
-        android:layout_marginEnd="41dp"
+        android:layout_marginStart="142dp"
+        android:layout_marginBottom="26dp"
         android:text="Register"
-        app:layout_constraintEnd_toEndOf="@+id/Phone_Number"
-        app:layout_constraintTop_toBottomOf="@+id/Phone_Number" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/Back_Button"
@@ -85,4 +82,15 @@
         android:text="Back"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/RoleIDEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:ems="10"
+        android:hint="Patients! leave blank"
+        android:inputType="number"
+        app:layout_constraintStart_toStartOf="@+id/Phone_Number"
+        app:layout_constraintTop_toBottomOf="@+id/Phone_Number" />
 </androidx.constraintlayout.widget.ConstraintLayout>
