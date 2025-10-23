@@ -23,4 +23,7 @@ public class UserEntity {
 
     @ColumnInfo(name = "DateOfBirth")
     public String DOB;
+
+    @ColumnInfo(name = "Role")
+    public String role;
 }

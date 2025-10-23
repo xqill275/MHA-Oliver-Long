@@ -15,8 +15,8 @@ public class CryptClass {
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
 
-            byte[] iv = cipher.getIV(); // initialization vector
-            byte[] encrypted = cipher.doFinal(plainText.getBytes("UTF-8"));
+            byte[] iv = cipher.getIV(); // initialisation vector
+            byte[] encrypted = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
 
             // Combine IV + ciphertext and Base64 encode
             byte[] combined = new byte[iv.length + encrypted.length];
