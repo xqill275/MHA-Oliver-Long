@@ -15,7 +15,7 @@ import androidx.core.view.WindowInsetsCompat;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    Button registerBtn, decryptBtn, encryptBtn;
+    Button registerBtn, decryptBtn, encryptBtn, loginBtn;
     TextView userListText;
 
     @Override
@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
         registerBtn = findViewById(R.id.RegisterButton);
         decryptBtn = findViewById(R.id.DecryptButton);
         encryptBtn = findViewById(R.id.EncryptButton);
+        loginBtn = findViewById(R.id.LoginButton);
         userListText = findViewById(R.id.UserListText);
 
         AppDatabase db = AppDatabase.getInstance(this);
@@ -41,6 +42,10 @@ public class MainActivity extends AppCompatActivity {
         // Open Register page
         registerBtn.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, RegisterPage.class))
+        );
+
+        loginBtn.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, LoginPage.class))
         );
 
         // Decrypt and show readable data
