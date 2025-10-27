@@ -1,5 +1,6 @@
 package com.example.mha;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -28,6 +29,10 @@ public class MainMenu extends AppCompatActivity {
 
         AppDatabase db = AppDatabase.getInstance(this);
         int userId = getIntent().getIntExtra("UserId", -1);
+        if (userId == -1) {
+            startActivity(new Intent(MainMenu.this, MainActivity.class));
+            finish();
+        }
         UserEntity user = db.usersDao().getUserFromID(userId);
 
         if (user != null) {
@@ -39,6 +44,10 @@ public class MainMenu extends AppCompatActivity {
             }
 
             Log.d("MainMenu", "Logged in as: " + CryptClass.decrypt(user.fullName));
+
+            adminBtn.setOnClickListener(v ->
+                    startActivity(new Intent(MainMenu.this, AdminPage.class))
+            );
         }
     }
 }
