@@ -26,4 +26,14 @@ public class UserEntity {
 
     @ColumnInfo(name = "Role")
     public String role;
+
+    // Deterministic SHA-256 hashes for login lookup
+    @ColumnInfo(name = "EmailHash")
+    public String emailHash;
+
+    @ColumnInfo(name = "NHSHash")
+    public String nhsHash;
+
+    @ColumnInfo(name = "DOBHash")
+    public String dobHash;
 }

@@ -73,11 +73,13 @@ public class RegisterPage extends AppCompatActivity {
             return;
         }
 
+
         // Email format check
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             Toast.makeText(this, "Please enter a valid email address.", Toast.LENGTH_LONG).show();
             return;
         }
+
         // duplicate email check
         if (db.usersDao().getUserByEmail(email) != null) {
             Toast.makeText(this, "Email already registered!", Toast.LENGTH_LONG).show();
@@ -126,15 +128,22 @@ public class RegisterPage extends AppCompatActivity {
 
         // upload new users to database:
 
+// upload new users to database:
         UserEntity user = new UserEntity();
         user.fullName = CryptClass.encrypt(fullNameText);
         user.email = CryptClass.encrypt(email);
         user.NhsNum = CryptClass.encrypt(nhsText);
         user.DOB = CryptClass.encrypt(dobText);
         user.phoneNum = CryptClass.encrypt(phoneText);
+
+// Store hashes for login matching
+        user.emailHash = HashClass.sha256(email);
+        user.nhsHash = HashClass.sha256(nhsText);
+        user.dobHash = HashClass.sha256(dobText);
+
         if (TextUtils.isEmpty(RoleText)) {
             user.role = CryptClass.encrypt("Patient");
-        } else if (RoleText.equals("1111")) { // CHANGE THIS AS SOON AS YOU FIND A BETTER WAY TO STORE THIS
+        } else if (RoleText.equals("1111")) {
             user.role = CryptClass.encrypt("Admin");
         } else {
             Toast.makeText(this, "Not known roleID", Toast.LENGTH_LONG).show();
@@ -142,12 +151,8 @@ public class RegisterPage extends AppCompatActivity {
         }
 
         db.usersDao().insert(user);
-        Toast.makeText(this, "user registered!!!", Toast.LENGTH_LONG).show();
-        List<UserEntity> users = db.usersDao().getAllUsers();
-        Log.d("DB", "Users: " + users.size());
-
+        Toast.makeText(this, "User registered!", Toast.LENGTH_LONG).show();
         startActivity(new Intent(RegisterPage.this, MainActivity.class));
-
     }
 
     // Converts a numeric string into a list of its individual digits
