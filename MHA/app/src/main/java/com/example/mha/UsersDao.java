@@ -9,19 +9,19 @@ import java.util.List;
 @Dao
 public interface UsersDao {
 
-    // Insert a new user
     @Insert
     void insert(UserEntity user);
 
-    // Get all users
     @Query("SELECT * FROM users")
     List<UserEntity> getAllUsers();
 
-    // Find a specific user by email
-    @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
+    @Query("SELECT * FROM users WHERE Email = :email LIMIT 1")
     UserEntity getUserByEmail(String email);
 
-    // Delete all users (useful for debugging or reset)
     @Query("DELETE FROM users")
     void deleteAll();
+
+    // NEW: lookup using deterministic SHA-256 hashes
+    @Query("SELECT * FROM users WHERE EmailHash = :emailHash AND NHSHash = :nhsHash AND DOBHash = :dobHash LIMIT 1")
+    UserEntity getUserForLogin(String emailHash, String nhsHash, String dobHash);
 }
