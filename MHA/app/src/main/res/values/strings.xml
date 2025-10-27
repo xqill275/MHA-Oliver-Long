@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">MHA</string>
+    <string name="prompt_select_user">Select user</string>
+    <string name="prompt_select_role">Select new role</string>
 </resources>

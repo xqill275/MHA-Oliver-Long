@@ -27,4 +27,7 @@ public interface UsersDao {
 
     @Query("SELECT * FROM users WHERE uid = :userID")
     UserEntity getUserFromID(int userID);
+
+    @Query("UPDATE users SET role = :newRole WHERE uid = :userId")
+    void updateUserRole(int userId, String newRole);
 }
