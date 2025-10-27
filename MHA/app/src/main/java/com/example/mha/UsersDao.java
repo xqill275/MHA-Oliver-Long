@@ -24,4 +24,7 @@ public interface UsersDao {
     // NEW: lookup using deterministic SHA-256 hashes
     @Query("SELECT * FROM users WHERE EmailHash = :emailHash AND NHSHash = :nhsHash AND DOBHash = :dobHash LIMIT 1")
     UserEntity getUserForLogin(String emailHash, String nhsHash, String dobHash);
+
+    @Query("SELECT * FROM users WHERE uid = :userID")
+    UserEntity getUserFromID(int userID);
 }

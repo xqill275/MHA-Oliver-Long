@@ -1,0 +1,44 @@
+package com.example.mha;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+public class MainMenu extends AppCompatActivity {
+    Button apointBtn, adminBtn;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main_menu);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+        apointBtn = findViewById(R.id.AppointmentBtn);
+        adminBtn = findViewById(R.id.AdminButton);
+
+        AppDatabase db = AppDatabase.getInstance(this);
+        int userId = getIntent().getIntExtra("UserId", -1);
+        UserEntity user = db.usersDao().getUserFromID(userId);
+
+        if (user != null) {
+            String role = CryptClass.decrypt(user.role);
+            if ("Admin".equals(role)) {
+                adminBtn.setVisibility(View.VISIBLE);
+            } else {
+                adminBtn.setVisibility(View.GONE);
+            }
+
+            Log.d("MainMenu", "Logged in as: " + CryptClass.decrypt(user.fullName));
+        }
+    }
+}
