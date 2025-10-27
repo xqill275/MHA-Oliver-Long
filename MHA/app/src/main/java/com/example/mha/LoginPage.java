@@ -2,6 +2,7 @@ package com.example.mha;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
@@ -64,12 +65,15 @@ public class LoginPage extends AppCompatActivity {
         UserEntity user = db.usersDao().getUserForLogin(emailHash, nhsHash, dobHash);
 
         if (user != null) {
+            int userID = user.uid;
             String decryptedName = CryptClass.decrypt(user.fullName);
             String decryptedRole = CryptClass.decrypt(user.role);
             Toast.makeText(this, "Welcome " + decryptedName + " (" + decryptedRole + ")", Toast.LENGTH_LONG).show();
 
             Log.d("Login", "Login successful for " + decryptedName);
-            startActivity(new Intent(LoginPage.this, MainActivity.class));
+            Intent i = new Intent(LoginPage.this, MainMenu.class);
+            i.putExtra("UserId", userID);
+            startActivity(i);
         } else {
             Toast.makeText(this, "Invalid credentials. Please try again.", Toast.LENGTH_LONG).show();
             Log.d("Login", "Login failed");
