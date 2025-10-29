@@ -12,7 +12,15 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.mha.network.ApiService;
+import com.example.mha.network.RetrofitClient;
+import com.example.mha.network.UserRequest;
+
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
     Button registerBtn, decryptBtn, encryptBtn, loginBtn;
@@ -36,10 +44,7 @@ public class MainActivity extends AppCompatActivity {
         loginBtn = findViewById(R.id.LoginButton);
         userListText = findViewById(R.id.UserListText);
 
-        AppDatabase db = AppDatabase.getInstance(this);
-        displayUsersEncrypted(db);
-
-        // Open Register page
+        // Buttons
         registerBtn.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, RegisterPage.class))
         );
@@ -48,60 +53,54 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, LoginPage.class))
         );
 
-        // Decrypt and show readable data
-        decryptBtn.setOnClickListener(v -> displayUsersDecrypted(db));
+        decryptBtn.setOnClickListener(v -> fetchAndDisplayUsers(false));
+        encryptBtn.setOnClickListener(v -> fetchAndDisplayUsers(true));
 
-        // Re-encrypt and show stored ciphertext again
-        encryptBtn.setOnClickListener(v -> displayUsersEncrypted(db));
+        // Fetch encrypted users by default
+        fetchAndDisplayUsers(true);
     }
 
-    private void displayUsersEncrypted(AppDatabase db) {
-        List<UserEntity> users = db.usersDao().getAllUsers();
+    private void fetchAndDisplayUsers(boolean encrypted) {
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        apiService.getUsers().enqueue(new Callback<List<UserRequest>>() {
+            @Override
+            public void onResponse(Call<List<UserRequest>> call, Response<List<UserRequest>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    displayUsers(response.body(), encrypted);
+                } else {
+                    userListText.setText("No users found or server error: " + response.code());
+                }
+            }
 
+            @Override
+            public void onFailure(Call<List<UserRequest>> call, Throwable t) {
+                userListText.setText("Network error: " + t.getMessage());
+                Log.e("API", "Network error: " + t.getMessage());
+            }
+        });
+    }
+
+    private void displayUsers(List<UserRequest> users, boolean encrypted) {
         if (users.isEmpty()) {
             userListText.setText("No users registered yet.");
             return;
         }
 
         StringBuilder sb = new StringBuilder();
-        for (UserEntity user : users) {
-            sb.append("Name: ").append(user.fullName)
-                    .append("\nEmail: ").append(user.email)
-                    .append("\nNHS: ").append(user.NhsNum)
-                    .append("\nDOB: ").append(user.DOB)
-                    .append("\nPhone: ").append(user.phoneNum)
-                    .append("\nRole: ").append(user.role)
-                    .append("\n---------------------\n");
-            Log.e("Test", user.fullName);
-        }
-        userListText.setText(sb.toString());
+        for (UserRequest user : users) {
+            String name = encrypted ? user.FullName : CryptClass.decrypt(user.FullName);
+            String email = encrypted ? user.Email : CryptClass.decrypt(user.Email);
+            String nhs = encrypted ? user.NHSnum : CryptClass.decrypt(user.NHSnum);
+            String dob = encrypted ? user.DateOfBirth : CryptClass.decrypt(user.DateOfBirth);
+            String phone = encrypted ? user.PhoneNum : CryptClass.decrypt(user.PhoneNum);
+            String role = encrypted ? user.Role : CryptClass.decrypt(user.Role);
 
-    }
-
-    private void displayUsersDecrypted(AppDatabase db) {
-        List<UserEntity> users = db.usersDao().getAllUsers();
-
-
-        if (users.isEmpty()) {
-            userListText.setText("No users registered yet.");
-            return;
-        }
-
-        StringBuilder sb = new StringBuilder();
-        for (UserEntity user : users) {
-            String decryptedName = CryptClass.decrypt(user.fullName);
-            String decryptedEmail = CryptClass.decrypt(user.email);
-            String decryptedNhs = CryptClass.decrypt(user.NhsNum);
-            String decryptedDob = CryptClass.decrypt(user.DOB);
-            String decryptedPhone = CryptClass.decrypt(user.phoneNum);
-            String decryptedRole = CryptClass.decrypt(user.role);
-
-            sb.append("Name: ").append(decryptedName)
-                    .append("\nEmail: ").append(decryptedEmail)
-                    .append("\nNHS: ").append(decryptedNhs)
-                    .append("\nDOB: ").append(decryptedDob)
-                    .append("\nPhone: ").append(decryptedPhone)
-                    .append("\nRole: ").append(decryptedRole)
+            sb.append("Name: ").append(name)
+                    .append("\nEmail: ").append(email)
+                    .append("\nNHS: ").append(nhs)
+                    .append("\nDOB: ").append(dob)
+                    .append("\nPhone: ").append(phone)
+                    .append("\nRole: ").append(role)
                     .append("\n---------------------\n");
         }
         userListText.setText(sb.toString());

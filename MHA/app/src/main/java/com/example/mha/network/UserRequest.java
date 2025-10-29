@@ -1,6 +1,7 @@
 package com.example.mha.network;
 
 public class UserRequest {
+    public int UID;
     public String FullName;
     public String Email;
     public String PhoneNum;
