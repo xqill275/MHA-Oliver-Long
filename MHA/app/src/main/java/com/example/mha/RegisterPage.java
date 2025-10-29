@@ -16,6 +16,13 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.mha.network.ApiService;
+import com.example.mha.network.RetrofitClient;
+import com.example.mha.network.UserRequest;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -125,34 +132,37 @@ public class RegisterPage extends AppCompatActivity {
             return;
         }
 
+        UserRequest UserRequest = new UserRequest(
+                CryptClass.encrypt(fullNameText),
+                CryptClass.encrypt(email),
+                CryptClass.encrypt(phoneText),
+                CryptClass.encrypt(nhsText),
+                CryptClass.encrypt(dobText),
+                CryptClass.encrypt(RoleText.isEmpty() ? "Patient" : "Admin"),
+                HashClass.sha256(email),
+                HashClass.sha256(nhsText),
+                HashClass.sha256(dobText)
+        );
 
-        // upload new users to database:
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        Call<Void> call = apiService.addUser(UserRequest);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(RegisterPage.this, "✅ User registered to server!", Toast.LENGTH_LONG).show();
+                    startActivity(new Intent(RegisterPage.this, MainActivity.class));
+                } else {
+                    Toast.makeText(RegisterPage.this, "⚠️ Server error: " + response.code(), Toast.LENGTH_LONG).show();
+                }
+            }
 
-// upload new users to database:
-        UserEntity user = new UserEntity();
-        user.fullName = CryptClass.encrypt(fullNameText);
-        user.email = CryptClass.encrypt(email);
-        user.NhsNum = CryptClass.encrypt(nhsText);
-        user.DOB = CryptClass.encrypt(dobText);
-        user.phoneNum = CryptClass.encrypt(phoneText);
-
-// Store hashes for login matching
-        user.emailHash = HashClass.sha256(email);
-        user.nhsHash = HashClass.sha256(nhsText);
-        user.dobHash = HashClass.sha256(dobText);
-
-        if (TextUtils.isEmpty(RoleText)) {
-            user.role = CryptClass.encrypt("Patient");
-        } else if (RoleText.equals("1111")) {
-            user.role = CryptClass.encrypt("Admin");
-        } else {
-            Toast.makeText(this, "Not known roleID", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        db.usersDao().insert(user);
-        Toast.makeText(this, "User registered!", Toast.LENGTH_LONG).show();
-        startActivity(new Intent(RegisterPage.this, MainActivity.class));
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(RegisterPage.this, "❌ Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                Log.e("API", " Network error:" + t.getMessage());
+            }
+        });
     }
 
     // Converts a numeric string into a list of its individual digits
