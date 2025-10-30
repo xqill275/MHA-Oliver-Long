@@ -18,4 +18,12 @@ public interface ApiService {
 
     @PUT("api/user/role")
     Call<Void> updateUserRole(@Body Map<String, Object> body);
+
+    // hospitals
+
+    @POST("api/hospitals")
+    Call<Void> addHospital(@Body HospitalRequest hospital);
+
+    @GET("api/hospitals")
+    Call<List<HospitalRequest>> getHospitals();
 }
