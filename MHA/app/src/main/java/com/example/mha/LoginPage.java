@@ -90,6 +90,7 @@ public class LoginPage extends AppCompatActivity {
 
                             Intent intent = new Intent(LoginPage.this, MainMenu.class);
                             intent.putExtra("UserId", userId);
+                            intent.putExtra("UserRole", decryptedRole);
                             startActivity(intent);
                             break;
                         }
