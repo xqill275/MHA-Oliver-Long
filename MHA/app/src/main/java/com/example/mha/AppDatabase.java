@@ -17,7 +17,7 @@ import androidx.room.RoomDatabase;
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract UsersDao usersDao();
-    public abstract HospitalDao hospitalDao(); // ✅ added hospital DAO
+    public abstract HospitalDao hospitalDao(); // added hospital DAO
 
     private static volatile AppDatabase INSTANCE;
 
@@ -28,7 +28,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "user-database")
                             .allowMainThreadQueries()
-                            // ⚠️ temporarily enable destructive migration while developing
+                            // Temporarily enable destructive migration while developing
                             .fallbackToDestructiveMigration()
                             .build();
                 }

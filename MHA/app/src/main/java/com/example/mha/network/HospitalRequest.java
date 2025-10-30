@@ -1,6 +1,7 @@
 package com.example.mha.network;
 
 public class HospitalRequest {
+    public int hospitalID;
     public String name;
     public String city;
     public String postcode;

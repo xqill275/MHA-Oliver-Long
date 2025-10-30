@@ -5,12 +5,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.content.Intent;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+
 
 public class MainMenu extends AppCompatActivity {
     Button apointBtn, adminBtn;
@@ -43,6 +46,13 @@ public class MainMenu extends AppCompatActivity {
             adminBtn.setVisibility(View.GONE);
         }
 
+
+
+        apointBtn.setOnClickListener(v -> {
+            Intent Apointintent = new Intent(MainMenu.this, ApointmentActivity.class);
+            Apointintent.putExtra("UserId", userId);
+            startActivity(Apointintent);
+        });
         adminBtn.setOnClickListener(v ->
                 startActivity(new Intent(MainMenu.this, AdminPage.class))
         );

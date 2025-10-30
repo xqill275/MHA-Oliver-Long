@@ -150,16 +150,16 @@ public class RegisterPage extends AppCompatActivity {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(RegisterPage.this, "✅ User registered to server!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(RegisterPage.this, "User registered to server!", Toast.LENGTH_LONG).show();
                     startActivity(new Intent(RegisterPage.this, MainActivity.class));
                 } else {
-                    Toast.makeText(RegisterPage.this, "⚠️ Server error: " + response.code(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(RegisterPage.this, "Server error: " + response.code(), Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(RegisterPage.this, "❌ Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(RegisterPage.this, "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
                 Log.e("API", " Network error:" + t.getMessage());
             }
         });
