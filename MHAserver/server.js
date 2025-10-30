@@ -101,6 +101,38 @@ app.post("/api/users", (req, res) => {
     });
 });
 
+
+/// HOSPITALS
+
+app.post("/api/hospitals", (req, res) => {
+    const { name, city, postcode } = req.body;
+
+    if (!name || !city || !postcode) {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const sql = "INSERT INTO hospitals (name, city, postcode) VALUES (?, ?, ?)";
+    db.query(sql, [name, city, postcode], (err, result) => {
+        if (err) {
+            console.error("Database insert error:", err);
+            res.status(500).json({ error: "Insert failed" });
+        } else {
+            res.json({ message: "Hospital added successfully", id: result.insertId });
+        }
+    });
+});
+
+app.get("/api/hospitals", (req, res) => {
+    db.query("SELECT * FROM hospitals", (err, results) => {
+        if (err) {
+            console.error("Database fetch error:", err);
+            res.status(500).json({ error: "Database error" });
+        } else {
+            res.json(results);
+        }
+    });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
