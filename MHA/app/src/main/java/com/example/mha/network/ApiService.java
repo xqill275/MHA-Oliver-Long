@@ -26,4 +26,8 @@ public interface ApiService {
 
     @GET("api/hospitals")
     Call<List<HospitalRequest>> getHospitals();
+
+    @POST("api/appointments/add")
+    Call<Void> addAppointment(@Body AppointmentRequest appointment);
+
 }
