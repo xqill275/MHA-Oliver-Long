@@ -41,6 +41,49 @@ app.get("/api/users", (req, res) => {
     });
 });
 
+app.get("/api/user", (req, res) => {
+    const userId = req.query.id;
+
+    if (!userId) {
+        return res.status(400).json({ error: "Missing user ID in query" });
+    }
+
+    db.query("SELECT * FROM users WHERE UID = ?", [userId], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Database query error" });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json(results[0]);
+    });
+});
+
+app.put("/api/user/role", (req, res) => {
+    const { uid, role } = req.body;
+
+    if (!uid || !role) {
+        return res.status(400).json({ error: "Missing uid or role" });
+    }
+
+    const sql = "UPDATE users SET Role = ? WHERE UID = ?";
+    db.query(sql, [role, uid], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Database update failed" });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json({ message: "Role updated successfully!" });
+    });
+});
+
 // Example: Add a new user (simplified)
 app.post("/api/users", (req, res) => {
     const { FullName, Email, PhoneNum, NHSnum, DateOfBirth, Role, EmailHash, NHSHash, DOBHash } = req.body;
