@@ -29,25 +29,22 @@ public class MainMenu extends AppCompatActivity {
 
         AppDatabase db = AppDatabase.getInstance(this);
         int userId = getIntent().getIntExtra("UserId", -1);
+        String userRole = getIntent().getStringExtra("UserRole");
+        Log.d("MainMenu", userRole);
+        Log.d("MainMenu", String.valueOf(userId));
         if (userId == -1) {
             startActivity(new Intent(MainMenu.this, MainActivity.class));
             finish();
         }
-        UserEntity user = db.usersDao().getUserFromID(userId);
 
-        if (user != null) {
-            String role = CryptClass.decrypt(user.role);
-            if ("Admin".equals(role)) {
-                adminBtn.setVisibility(View.VISIBLE);
-            } else {
-                adminBtn.setVisibility(View.GONE);
-            }
-
-            Log.d("MainMenu", "Logged in as: " + CryptClass.decrypt(user.fullName));
-
-            adminBtn.setOnClickListener(v ->
-                    startActivity(new Intent(MainMenu.this, AdminPage.class))
-            );
+        if ("Admin".equals(userRole)) {
+            adminBtn.setVisibility(View.VISIBLE);
+        } else {
+            adminBtn.setVisibility(View.GONE);
         }
+
+        adminBtn.setOnClickListener(v ->
+                startActivity(new Intent(MainMenu.this, AdminPage.class))
+        );
     }
 }
