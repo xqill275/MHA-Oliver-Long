@@ -30,4 +30,11 @@ public interface ApiService {
     @POST("api/appointments/add")
     Call<Void> addAppointment(@Body AppointmentRequest appointment);
 
+    @GET("api/appointments")
+    Call<List<AppointmentRequest>> getAppointments();
+
+    // Book an appointment (requires appointmentID + userID in body)
+    @POST("api/appointments/book")
+    Call<Void> bookAppointment(@Body Map<String, Object> body);
+
 }

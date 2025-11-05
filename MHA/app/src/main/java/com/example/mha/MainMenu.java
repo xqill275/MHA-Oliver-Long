@@ -56,5 +56,6 @@ public class MainMenu extends AppCompatActivity {
         adminBtn.setOnClickListener(v ->
                 startActivity(new Intent(MainMenu.this, AdminPage.class))
         );
+
     }
 }
