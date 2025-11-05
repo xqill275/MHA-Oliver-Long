@@ -1,6 +1,7 @@
 package com.example.mha.network;
 
 public class AppointmentRequest {
+    public int appointmentID;
     public int hospitalID;
     public String appointmentDate;
     public String appointmentTime;
@@ -12,4 +13,8 @@ public class AppointmentRequest {
         this.appointmentTime = appointmentTime;
         this.status = status;
     }
+
+
+
+
 }

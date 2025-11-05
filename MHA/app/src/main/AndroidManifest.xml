@@ -15,6 +15,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MHA">
         <activity
+            android:name=".ViewBookingActivity"
+            android:exported="false" />
+        <activity
             android:name=".BookActivity"
             android:exported="false" />
         <activity

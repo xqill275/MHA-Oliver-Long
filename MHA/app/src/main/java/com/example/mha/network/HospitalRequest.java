@@ -11,4 +11,13 @@ public class HospitalRequest {
         this.city = city;
         this.postcode = postcode;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
 }
