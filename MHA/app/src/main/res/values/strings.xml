@@ -3,4 +3,9 @@
     <string name="prompt_select_user">Select user</string>
     <string name="prompt_select_role">Select new role</string>
     <string name="prompt_select_hospital">Select Hospital</string>
+    <string-array name="filter_options">
+        <item>All Locations</item>
+        <item>By Hospital</item>
+        <item>By Location</item>
+    </string-array>
 </resources>
