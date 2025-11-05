@@ -95,6 +95,23 @@ app.get("/api/hospitals", (req, res) => {
 });
 
 
+app.get("/api/hospitals/:id", (req, res) => {
+    const hospitalID = req.params.id;
+
+    db.query("SELECT * FROM hospitals WHERE hospitalID = ?", [hospitalID], (err, results) => {
+        if (err) {
+            console.error("Database query failed:", err);
+            return res.status(500).json({ error: "Database error" });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: "Hospital not found" });
+        }
+
+        res.json(results[0]);
+    });
+});
+
 // APPOINTMENTS
 
 // Get all appointments
@@ -166,6 +183,33 @@ app.post("/api/appointments/cancel", (req, res) => {
         if (err) return res.status(500).json({ error: "Database update failed" });
         if (result.affectedRows === 0) return res.status(404).json({ error: "Appointment not found" });
         res.json({ message: "Appointment cancelled successfully!" });
+    });
+});
+
+app.get("/api/appointments/user/:userID", (req, res) => {
+    const userID = req.params.userID;
+
+    if (!userID) {
+        return res.status(400).json({ error: "Missing userID" });
+    }
+
+    const sql = `
+        SELECT *
+        FROM appointments
+        WHERE userID = ?
+    `;
+
+    db.query(sql, [userID], (err, results) => {
+        if (err) {
+            console.error("Database query failed:", err);
+            return res.status(500).json({ error: "Database error" });
+        }
+
+        if (results.length === 0) {
+            return res.json({ message: "No appointments found", appointments: [] });
+        }
+
+        res.json(results);
     });
 });
 

@@ -8,6 +8,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
+import retrofit2.http.Path;
 
 public interface ApiService {
     @GET("api/users")
@@ -27,11 +28,20 @@ public interface ApiService {
     @GET("api/hospitals")
     Call<List<HospitalRequest>> getHospitals();
 
+    @GET("api/hospitals/{id}")
+    Call<HospitalRequest> getHospitalById(@Path("id") int id);
+
     @POST("api/appointments/add")
     Call<Void> addAppointment(@Body AppointmentRequest appointment);
 
     @GET("api/appointments")
     Call<List<AppointmentRequest>> getAppointments();
+
+    @GET("api/appointments/user/{userId}")
+    Call<List<AppointmentRequest>> getAppointmentsByUser(@Path("userId") int userId);
+
+    @POST("api/appointments/cancel")
+    Call<Void> cancelAppointment(@Body Map<String, Object> body);
 
     // Book an appointment (requires appointmentID + userID in body)
     @POST("api/appointments/book")

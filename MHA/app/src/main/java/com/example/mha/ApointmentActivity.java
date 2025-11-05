@@ -34,6 +34,12 @@ public class ApointmentActivity extends AppCompatActivity {
             startActivity(Apointintent);
         });
 
+        ViewBtn.setOnClickListener(v -> {
+            Intent Apointintent = new Intent(ApointmentActivity.this, ViewBookingActivity.class);
+            Apointintent.putExtra("UserId", userId);
+            startActivity(Apointintent);
+        });
+
 
     }
 
