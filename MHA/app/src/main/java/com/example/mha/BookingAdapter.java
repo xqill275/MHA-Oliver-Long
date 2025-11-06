@@ -1,6 +1,7 @@
 package com.example.mha;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,10 +30,12 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
 
     private final Context context;
     private final List<AppointmentWithId> bookings; // Use wrapper class to store appointmentID
+    private final int userID;
 
-    public BookingAdapter(Context context, List<AppointmentWithId> bookings) {
+    public BookingAdapter(Context context, List<AppointmentWithId> bookings, int userID) {
         this.context = context;
         this.bookings = bookings;
+        this.userID = userID;
     }
 
     @NonNull
@@ -55,6 +58,18 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
 
         // Cancel button
         holder.btnCancel.setOnClickListener(v -> cancelBooking(booking.appointmentID, position));
+
+        holder.btnReschedule.setOnClickListener(v -> {
+            Intent intent = new Intent(context, RescheduleActivity.class);
+            intent.putExtra("AppointmentID", booking.appointmentID);
+            intent.putExtra("HospitalID", booking.appointment.hospitalID);
+            intent.putExtra("UserID", userID); // FIX LATER
+            intent.putExtra("OldDate", booking.appointment.appointmentDate);
+            intent.putExtra("OldTime", booking.appointment.appointmentTime);
+            context.startActivity(intent);
+        });
+
+
     }
 
     private void fetchHospitalInfo(AppointmentWithId booking, BookingViewHolder holder) {
@@ -108,13 +123,14 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
 
     static class BookingViewHolder extends RecyclerView.ViewHolder {
         TextView tvHospitalName, tvAppointmentInfo;
-        Button btnCancel;
+        Button btnCancel, btnReschedule;
 
         public BookingViewHolder(@NonNull View itemView) {
             super(itemView);
             tvHospitalName = itemView.findViewById(R.id.tvHospitalName);
             tvAppointmentInfo = itemView.findViewById(R.id.tvAppointmentInfo);
             btnCancel = itemView.findViewById(R.id.btnCancel);
+            btnReschedule = itemView.findViewById(R.id.btnReschedule);
         }
     }
 

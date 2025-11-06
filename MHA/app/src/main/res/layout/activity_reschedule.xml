@@ -1,0 +1,29 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tvCurrentAppointment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Current appointment:"
+        android:textSize="18sp"
+        android:paddingBottom="8dp"/>
+
+    <Spinner
+        android:id="@+id/spinnerNewTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"/>
+
+    <Button
+        android:id="@+id/btnConfirmReschedule"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Confirm Reschedule"
+        android:layout_marginTop="20dp"/>
+</LinearLayout>
