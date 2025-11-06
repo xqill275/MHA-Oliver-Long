@@ -50,7 +50,6 @@ public class BookActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Get userId from previous activity
         userId = getIntent().getIntExtra("UserId", -1);
 
         spinnerHospital = findViewById(R.id.spinnerHospital);
@@ -61,7 +60,6 @@ public class BookActivity extends AppCompatActivity {
 
         loadHospitals();
 
-        // When a hospital is selected, load its available appointment times
         spinnerHospital.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
@@ -81,7 +79,7 @@ public class BookActivity extends AppCompatActivity {
                 return;
             }
 
-            bookAppointment(selectedAppointment, userId);
+            attemptBooking(userId, selectedAppointment);
         });
     }
 
@@ -154,11 +152,47 @@ public class BookActivity extends AppCompatActivity {
         });
     }
 
+    private void attemptBooking(int userId, AppointmentRequest selectedAppointment) {
+        apiService.getAppointmentsByUser(userId).enqueue(new Callback<List<AppointmentRequest>>() {
+            @Override
+            public void onResponse(Call<List<AppointmentRequest>> call, Response<List<AppointmentRequest>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    boolean hasConflict = false;
+                    String newDate = selectedAppointment.appointmentDate.split("T")[0];
+
+                    for (AppointmentRequest appt : response.body()) {
+                        String existingDate = appt.appointmentDate.split("T")[0];
+                        if (existingDate.equals(newDate)) {
+                            hasConflict = true;
+                            break;
+                        }
+                    }
+
+                    if (hasConflict) {
+                        Toast.makeText(BookActivity.this,
+                                "You already have an appointment on this day.",
+                                Toast.LENGTH_LONG).show();
+                    } else {
+                        // Safe to book
+                        bookAppointment(selectedAppointment, userId);
+                    }
+                } else {
+                    Toast.makeText(BookActivity.this, "Failed to check existing appointments", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<AppointmentRequest>> call, Throwable t) {
+                Toast.makeText(BookActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void bookAppointment(AppointmentRequest appointment, int userId) {
         if (appointment == null) return;
 
         Map<String, Object> body = new HashMap<>();
-        body.put("appointmentID", appointment.hospitalID); // replace with appointmentID if you add it to model
+        body.put("appointmentID", appointment.appointmentID);
         body.put("userID", userId);
 
         apiService.bookAppointment(body).enqueue(new Callback<Void>() {
