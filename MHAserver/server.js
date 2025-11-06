@@ -153,7 +153,7 @@ app.post("/api/appointments/book", (req, res) => {
     if (!appointmentID || !userID) {
         return res.status(400).json({ error: "Missing required fields" });
     }
-
+    console.log("Parsed values:", appointmentID, userID);
     const sql = `
         UPDATE appointments
         SET userID = ?, status = 'booked'
@@ -206,7 +206,7 @@ app.get("/api/appointments/user/:userID", (req, res) => {
         }
 
         if (results.length === 0) {
-            return res.json({ message: "No appointments found", appointments: [] });
+            return res.json([]);
         }
 
         res.json(results);

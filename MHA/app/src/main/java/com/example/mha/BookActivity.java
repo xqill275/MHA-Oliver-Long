@@ -1,6 +1,7 @@
 package com.example.mha;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -105,6 +107,7 @@ public class BookActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<HospitalRequest>> call, Throwable t) {
+                Log.e("Booking", Objects.requireNonNull(t.getMessage()));
                 Toast.makeText(BookActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -148,6 +151,7 @@ public class BookActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<List<AppointmentRequest>> call, Throwable t) {
                 Toast.makeText(BookActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("Booking", Objects.requireNonNull(t.getMessage()));
             }
         });
     }
@@ -184,6 +188,7 @@ public class BookActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<List<AppointmentRequest>> call, Throwable t) {
                 Toast.makeText(BookActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("Booking", Objects.requireNonNull(t.getMessage()));
             }
         });
     }
@@ -209,6 +214,7 @@ public class BookActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
                 Toast.makeText(BookActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("Booking", Objects.requireNonNull(t.getMessage()));
             }
         });
     }

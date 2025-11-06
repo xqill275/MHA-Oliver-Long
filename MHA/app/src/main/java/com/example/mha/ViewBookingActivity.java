@@ -59,7 +59,7 @@ public class ViewBookingActivity extends AppCompatActivity {
                         bookingsWithId.add(new BookingAdapter.AppointmentWithId(appointmentID, ar));
                     }
 
-                    BookingAdapter adapter = new BookingAdapter(ViewBookingActivity.this, bookingsWithId);
+                    BookingAdapter adapter = new BookingAdapter(ViewBookingActivity.this, bookingsWithId, userId);
                     recyclerView.setAdapter(adapter);
                 } else {
                     Toast.makeText(ViewBookingActivity.this, "No bookings found", Toast.LENGTH_SHORT).show();
