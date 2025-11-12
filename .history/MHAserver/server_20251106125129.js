@@ -213,58 +213,6 @@ app.get("/api/appointments/user/:userID", (req, res) => {
     });
 });
 
-// RECORDS
-
-app.get("/api/records/:userID", (req, res) => {
-    const { userID } = req.params;
-
-    if (!userID) {
-        return res.status(400).json({ error: "Missing userID" });
-    }
-
-    const sql = "SELECT * FROM records WHERE userID = ? LIMIT 1";
-
-    db.query(sql, [userID], (err, results) => {
-        if (err) {
-            console.error("Database query failed:", err);
-            return res.status(500).json({ error: "Database error" });
-        }
-
-        if (results.length === 0) {
-            // No record found for this user
-            return res.json(null);
-        }
-
-        res.json(results[0]);
-    });
-});
-
-app.post("/api/records/update", (req, res) => {
-    const { userID, allergies, medications, problems } = req.body;
-
-    if (!userID) {
-        return res.status(400).json({ error: "Missing userID" });
-    }
-
-    const sql = `
-        INSERT INTO records (userID, allergies, medications, problems, updatedAt)
-        VALUES (?, ?, ?, ?, NOW())
-        ON DUPLICATE KEY UPDATE
-            allergies = VALUES(allergies),
-            medications = VALUES(medications),
-            problems = VALUES(problems),
-            updatedAt = NOW()
-    `;
-
-    db.query(sql, [userID, allergies || "", medications || "", problems || ""], (err, result) => {
-        if (err) {
-            console.error("Database upsert failed:", err);
-            return res.status(500).json({ error: "Database error" });
-        }
-
-        res.json({ message: "Record updated successfully!" });
-    });
-});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

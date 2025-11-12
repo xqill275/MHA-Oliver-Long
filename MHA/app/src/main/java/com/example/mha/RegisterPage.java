@@ -131,6 +131,14 @@ public class RegisterPage extends AppCompatActivity {
             Toast.makeText(this, "Please enter a valid 10–11 digit phone number.", Toast.LENGTH_LONG).show();
             return;
         }
+        String Role = "";
+        if (RoleText.isEmpty()) {
+            Role = "Patient";
+        } else if (RoleText.equals("1111")) {
+            Role = "Admin";
+        } else if (RoleText.equals("2222")) {
+            Role = "Doctor";
+        }
 
         UserRequest UserRequest = new UserRequest(
                 CryptClass.encrypt(fullNameText),
@@ -138,7 +146,7 @@ public class RegisterPage extends AppCompatActivity {
                 CryptClass.encrypt(phoneText),
                 CryptClass.encrypt(nhsText),
                 CryptClass.encrypt(dobText),
-                CryptClass.encrypt(RoleText.isEmpty() ? "Patient" : "Admin"),
+                CryptClass.encrypt(Role),
                 HashClass.sha256(email),
                 HashClass.sha256(nhsText),
                 HashClass.sha256(dobText)

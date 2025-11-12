@@ -16,7 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 
 public class MainMenu extends AppCompatActivity {
-    Button apointBtn, adminBtn;
+    Button apointBtn, adminBtn, recordBtn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,6 +29,7 @@ public class MainMenu extends AppCompatActivity {
         });
         apointBtn = findViewById(R.id.AppointmentBtn);
         adminBtn = findViewById(R.id.AdminButton);
+        recordBtn = findViewById(R.id.RecordsBtn);
 
         AppDatabase db = AppDatabase.getInstance(this);
         int userId = getIntent().getIntExtra("UserId", -1);
@@ -46,6 +47,12 @@ public class MainMenu extends AppCompatActivity {
             adminBtn.setVisibility(View.GONE);
         }
 
+        if ("Doctor".equals(userRole)) {
+            recordBtn.setVisibility(View.VISIBLE);
+        } else {
+            recordBtn.setVisibility(View.GONE);
+        }
+
 
 
         apointBtn.setOnClickListener(v -> {
@@ -56,6 +63,9 @@ public class MainMenu extends AppCompatActivity {
         adminBtn.setOnClickListener(v ->
                 startActivity(new Intent(MainMenu.this, AdminPage.class))
         );
+        recordBtn.setOnClickListener(v -> {
+            startActivity(new Intent(MainMenu.this, MedicalRecords.class));
+        });
 
     }
 }
