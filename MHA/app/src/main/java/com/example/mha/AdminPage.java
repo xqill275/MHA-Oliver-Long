@@ -68,7 +68,7 @@ public class AdminPage extends AppCompatActivity {
         // 🔹 Role dropdown
         ArrayAdapter<String> roleAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item,
-                new String[]{"Patient", "Admin"});
+                new String[]{"Patient", "Admin", "Doctor"});
         roleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         roleSpinner.setAdapter(roleAdapter);
 

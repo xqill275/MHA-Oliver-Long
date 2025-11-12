@@ -216,13 +216,17 @@ app.get("/api/appointments/user/:userID", (req, res) => {
 // RECORDS
 
 app.get("/api/records/:userID", (req, res) => {
-    const { userID } = req.params;
+    const userID = req.params.userID;
 
     if (!userID) {
-        return res.status(400).json({ error: "Missing userID" });
+        return res.status(400).json({ error: "Missing userID parameter" });
     }
 
-    const sql = "SELECT * FROM records WHERE userID = ? LIMIT 1";
+    const sql = `
+        SELECT * 
+        FROM records
+        WHERE userID = ?
+    `;
 
     db.query(sql, [userID], (err, results) => {
         if (err) {
@@ -230,12 +234,12 @@ app.get("/api/records/:userID", (req, res) => {
             return res.status(500).json({ error: "Database error" });
         }
 
+        // If no records found, return an empty array
         if (results.length === 0) {
-            // No record found for this user
-            return res.json(null);
+            return res.json([]);
         }
 
-        res.json(results[0]);
+        res.json(results);
     });
 });
 

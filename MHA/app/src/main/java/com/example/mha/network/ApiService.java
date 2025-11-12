@@ -47,4 +47,10 @@ public interface ApiService {
     @POST("api/appointments/book")
     Call<Void> bookAppointment(@Body Map<String, Object> body);
 
+    @GET("/api/records/{userID}")
+    Call<RecordRequest> getRecord(@Path("userID") int userID);
+
+    @POST("/api/records/update")
+    Call<RecordRequest> updateRecord(@Body RecordRequest record);
+
 }

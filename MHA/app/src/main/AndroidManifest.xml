@@ -15,6 +15,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MHA">
         <activity
+            android:name=".UpdatePatientRecords"
+            android:exported="false" />
+        <activity
+            android:name=".MedicalRecords"
+            android:exported="false" />
+        <activity
             android:name=".RescheduleActivity"
             android:exported="false" />
         <activity
