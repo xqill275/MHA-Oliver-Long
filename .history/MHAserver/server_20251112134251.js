@@ -283,7 +283,7 @@ app.get("/api/vitals/:userID", (req, res) => {
             return res.status(500).json({ error: "Database error" });
         }
 
-        res.json(results[0]);
+        res.json(results);
     });
 });
 

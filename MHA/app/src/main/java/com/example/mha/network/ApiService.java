@@ -53,4 +53,10 @@ public interface ApiService {
     @POST("/api/records/update")
     Call<RecordRequest> updateRecord(@Body RecordRequest record);
 
+    @GET("api/vitals/{userID}")
+    Call<VitalsRequest> getVitals(@Path("userID") int userID);
+
+    @POST("api/vitals/update")
+    Call<VitalsRequest> updateVitals(@Body VitalsRequest vitals);
+
 }
