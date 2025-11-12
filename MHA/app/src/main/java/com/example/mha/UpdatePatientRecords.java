@@ -4,6 +4,7 @@ import com.example.mha.network.ApiService;
 import com.example.mha.network.RetrofitClient;
 import com.example.mha.network.UserRequest;
 import com.example.mha.network.RecordRequest;
+import com.example.mha.network.VitalsRequest; // <-- NEW
 
 import android.os.Bundle;
 import android.util.Log;
@@ -33,7 +34,8 @@ public class UpdatePatientRecords extends AppCompatActivity {
     private ApiService apiService;
     private Spinner userSpinner;
     private EditText allergiesInput, medicationsInput, problemsInput;
-    private Button saveButton;
+    private EditText temperatureInput, heartRateInput, systolicInput, diastolicInput; // NEW
+    private Button saveButton, saveVitalsButton; // NEW
 
     private List<UserRequest> users = new ArrayList<>();
     private List<String> userNames = new ArrayList<>();
@@ -58,6 +60,13 @@ public class UpdatePatientRecords extends AppCompatActivity {
         problemsInput = findViewById(R.id.problemsInput);
         saveButton = findViewById(R.id.saveButton);
 
+        // Vitals
+        temperatureInput = findViewById(R.id.temperatureInput);
+        heartRateInput = findViewById(R.id.heartRateInput);
+        systolicInput = findViewById(R.id.systolicInput);
+        diastolicInput = findViewById(R.id.diastolicInput);
+        saveVitalsButton = findViewById(R.id.saveVitalsButton);
+
         apiService = RetrofitClient.getClient().create(ApiService.class);
 
         fetchUsersFromApi();
@@ -68,6 +77,7 @@ public class UpdatePatientRecords extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 selectedUserId = users.get(position).UID;
                 fetchRecordForUser(selectedUserId);
+                fetchVitalsForUser(selectedUserId); // NEW
             }
 
             @Override
@@ -76,13 +86,22 @@ public class UpdatePatientRecords extends AppCompatActivity {
             }
         });
 
-        // Save button listener
+        // Save Record button
         saveButton.setOnClickListener(v -> {
             if (selectedUserId == -1) {
                 Toast.makeText(UpdatePatientRecords.this, "Please select a user", Toast.LENGTH_SHORT).show();
                 return;
             }
             saveRecordForUser(selectedUserId);
+        });
+
+        // Save Vitals button
+        saveVitalsButton.setOnClickListener(v -> {
+            if (selectedUserId == -1) {
+                Toast.makeText(UpdatePatientRecords.this, "Please select a user", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            saveVitalsForUser(selectedUserId);
         });
     }
 
@@ -129,7 +148,6 @@ public class UpdatePatientRecords extends AppCompatActivity {
                     medicationsInput.setText(record.medications != null ? record.medications : "");
                     problemsInput.setText(record.problems != null ? record.problems : "");
                 } else {
-                    // No record found — clear fields
                     allergiesInput.setText("");
                     medicationsInput.setText("");
                     problemsInput.setText("");
@@ -139,6 +157,59 @@ public class UpdatePatientRecords extends AppCompatActivity {
             @Override
             public void onFailure(Call<RecordRequest> call, Throwable t) {
                 Toast.makeText(UpdatePatientRecords.this, "Failed to load record", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // 🩺 NEW - Fetch vitals
+    private void fetchVitalsForUser(int userID) {
+        apiService.getVitals(userID).enqueue(new Callback<VitalsRequest>() {
+            @Override
+            public void onResponse(Call<VitalsRequest> call, Response<VitalsRequest> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    VitalsRequest vitals = response.body();
+                    temperatureInput.setText(String.valueOf(vitals.temperature));
+                    heartRateInput.setText(String.valueOf(vitals.heartRate));
+                    systolicInput.setText(String.valueOf(vitals.systolic));
+                    diastolicInput.setText(String.valueOf(vitals.diastolic));
+                } else {
+                    temperatureInput.setText("");
+                    heartRateInput.setText("");
+                    systolicInput.setText("");
+                    diastolicInput.setText("");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<VitalsRequest> call, Throwable t) {
+                Toast.makeText(UpdatePatientRecords.this, "Failed to load vitals", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // 🩺 NEW - Save vitals
+    private void saveVitalsForUser(int userID) {
+        double temperature = temperatureInput.getText().toString().isEmpty() ? 0 : Double.parseDouble(temperatureInput.getText().toString());
+        int heartRate = heartRateInput.getText().toString().isEmpty() ? 0 : Integer.parseInt(heartRateInput.getText().toString());
+        int systolic = systolicInput.getText().toString().isEmpty() ? 0 : Integer.parseInt(systolicInput.getText().toString());
+        int diastolic = diastolicInput.getText().toString().isEmpty() ? 0 : Integer.parseInt(diastolicInput.getText().toString());
+
+        VitalsRequest vitals = new VitalsRequest(userID, temperature, heartRate, systolic, diastolic);
+
+        apiService.updateVitals(vitals).enqueue(new Callback<VitalsRequest>() {
+            @Override
+            public void onResponse(Call<VitalsRequest> call, Response<VitalsRequest> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(UpdatePatientRecords.this, "Vitals saved successfully", Toast.LENGTH_SHORT).show();
+                    fetchVitalsForUser(userID);
+                } else {
+                    Toast.makeText(UpdatePatientRecords.this, "Failed to save vitals", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<VitalsRequest> call, Throwable t) {
+                Toast.makeText(UpdatePatientRecords.this, "Error saving vitals: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
