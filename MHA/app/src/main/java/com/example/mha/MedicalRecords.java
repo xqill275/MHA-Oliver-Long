@@ -11,7 +11,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 public class MedicalRecords extends AppCompatActivity {
-    Button UpdateRecordsBtn;
+    Button UpdateRecordsBtn, viewPatientRecordsBtn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,9 +24,14 @@ public class MedicalRecords extends AppCompatActivity {
         });
 
         UpdateRecordsBtn = findViewById(R.id.UpdatePatientRecordsBtn);
+        viewPatientRecordsBtn = findViewById(R.id.ViewPatientRecordBtn);
 
         UpdateRecordsBtn.setOnClickListener(v -> {
             startActivity(new Intent(MedicalRecords.this, UpdatePatientRecords.class));
+        });
+
+        viewPatientRecordsBtn.setOnClickListener(v -> {
+            startActivity(new Intent(MedicalRecords.this, ViewPatientRecords.class));
         });
     }
 }
