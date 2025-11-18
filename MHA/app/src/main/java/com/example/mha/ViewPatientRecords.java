@@ -1,11 +1,13 @@
 package com.example.mha;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,6 +36,7 @@ public class ViewPatientRecords extends AppCompatActivity {
     private ApiService apiService;
     private Spinner userSpinner;
     private TextView recordText, vitalsText;
+    Button scanBarcodeBtn;
 
     private List<UserRequest> users = new ArrayList<>();
     private List<String> userNames = new ArrayList<>();
@@ -54,10 +57,16 @@ public class ViewPatientRecords extends AppCompatActivity {
         userSpinner = findViewById(R.id.userSpinner);
         recordText = findViewById(R.id.recordText);
         vitalsText = findViewById(R.id.vitalsText);
+        scanBarcodeBtn = findViewById(R.id.scanBarcodeBtn);
 
         apiService = RetrofitClient.getClient().create(ApiService.class);
 
         fetchUsersFromApi();
+
+        scanBarcodeBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(ViewPatientRecords.this, BarcodeScannerActivity.class);
+            startActivityForResult(intent, 2001);
+        });
 
         userSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -155,5 +164,28 @@ public class ViewPatientRecords extends AppCompatActivity {
                 vitalsText.setText("Failed to load vitals: " + t.getMessage());
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 2001 && resultCode == RESULT_OK) {
+            int scannedUserId = data.getIntExtra("userID", -1);
+
+            if (scannedUserId != -1) {
+                for (int i = 0; i < users.size(); i++) {
+                    if (users.get(i).UID == scannedUserId) {
+
+                        userSpinner.setSelection(i); // Auto select user
+
+                        fetchRecordForUser(scannedUserId);
+                        fetchVitalsForUser(scannedUserId);
+
+                        break;
+                    }
+                }
+            }
+        }
     }
 }
