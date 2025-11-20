@@ -64,8 +64,8 @@ public class RescheduleActivity extends AppCompatActivity {
         oldAppointmentId = getIntent().getIntExtra("AppointmentID", -1);
         hospitalId = getIntent().getIntExtra("HospitalID", -1);
         userId = getIntent().getIntExtra("UserID", -1);
-        oldDate = getIntent().getStringExtra("OldDate");
-        oldTime = getIntent().getStringExtra("OldTime");
+        oldDate = CryptClass.decrypt(getIntent().getStringExtra("OldDate"));
+        oldTime = CryptClass.decrypt(getIntent().getStringExtra("OldTime"));
 
         // 🔹 Display current appointment
         tvCurrentAppointment.setText("Current: " + oldDate + " at " + oldTime);
@@ -96,7 +96,7 @@ public class RescheduleActivity extends AppCompatActivity {
                     for (AppointmentRequest appt : response.body()) {
                         if (appt.hospitalID == hospitalId && "available".equalsIgnoreCase(appt.status)) {
                             availableAppointments.add(appt);
-                            timeSlots.add(appt.appointmentDate + " " + appt.appointmentTime);
+                            timeSlots.add( CryptClass.decrypt(appt.appointmentDate) + " " + CryptClass.decrypt(appt.appointmentTime));
                         }
                     }
 

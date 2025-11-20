@@ -126,9 +126,9 @@ public class ViewPatientRecords extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     RecordRequest record = response.body();
                     recordText.setText(
-                            "Allergies: " + record.allergies + "\n" +
-                                    "Medications: " + record.medications + "\n" +
-                                    "Problems: " + record.problems + "\n");
+                            "Allergies: " + CryptClass.decrypt(record.allergies) + "\n" +
+                                    "Medications: " + CryptClass.decrypt(record.medications) + "\n" +
+                                    "Problems: " + CryptClass.decrypt(record.problems) + "\n");
                 } else {
                     recordText.setText("No medical record found for this user.");
                 }
@@ -150,10 +150,10 @@ public class ViewPatientRecords extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     VitalsRequest vitals = response.body();
                     vitalsText.setText(
-                            "Temperature: " + vitals.temperature + "°C\n" +
-                                    "Heart Rate: " + vitals.heartRate + " bpm\n" +
-                                    "Systolic: " + vitals.systolic + " mmHg\n" +
-                                    "Diastolic: " + vitals.diastolic + " mmHg\n");
+                            "Temperature: " + CryptClass.decrypt(vitals.temperature) + "°C\n" +
+                                    "Heart Rate: " + CryptClass.decrypt(vitals.heartRate) + " bpm\n" +
+                                    "Systolic: " + CryptClass.decrypt(vitals.systolic) + " mmHg\n" +
+                                    "Diastolic: " + CryptClass.decrypt(vitals.diastolic) + " mmHg\n");
                 } else {
                     vitalsText.setText("No vitals found for this user.");
                 }

@@ -102,7 +102,11 @@ public class AdminPage extends AppCompatActivity {
                 return;
             }
 
-            addHospital(name, city, postcode);
+            try {
+                addHospital(CryptClass.encrypt(name),CryptClass.encrypt(city), CryptClass.encrypt(postcode));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
 
         // 🔹 Add appointment button
@@ -122,7 +126,11 @@ public class AdminPage extends AppCompatActivity {
                 return;
             }
 
-            addAppointment(hospitalID, date, time);
+            try {
+                addAppointment(hospitalID, date, time);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
@@ -172,7 +180,7 @@ public class AdminPage extends AppCompatActivity {
                     hospitalNames.clear();
 
                     for (HospitalRequest hospital : hospitals) {
-                        hospitalNames.add(hospital.name + " (" + hospital.city + ")");
+                        hospitalNames.add(CryptClass.decrypt(hospital.name) + " (" + CryptClass.decrypt(hospital.city) + ")");
                     }
 
                     ArrayAdapter<String> hospitalAdapter = new ArrayAdapter<>(
@@ -245,8 +253,8 @@ public class AdminPage extends AppCompatActivity {
     }
 
     // 🔹 Add appointment API call
-    private void addAppointment(int hospitalID, String date, String time) {
-        AppointmentRequest appointment = new AppointmentRequest(hospitalID, date, time, "available");
+    private void addAppointment(int hospitalID, String date, String time) throws Exception {
+        AppointmentRequest appointment = new AppointmentRequest(hospitalID, CryptClass.encrypt(date), CryptClass.encrypt(time), "available");
 
         apiService.addAppointment(appointment).enqueue(new Callback<Void>() {
             @Override
