@@ -92,7 +92,11 @@ public class UpdatePatientRecords extends AppCompatActivity {
                 Toast.makeText(UpdatePatientRecords.this, "Please select a user", Toast.LENGTH_SHORT).show();
                 return;
             }
-            saveRecordForUser(selectedUserId);
+            try {
+                saveRecordForUser(selectedUserId);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
 
         // Save Vitals button
@@ -101,7 +105,11 @@ public class UpdatePatientRecords extends AppCompatActivity {
                 Toast.makeText(UpdatePatientRecords.this, "Please select a user", Toast.LENGTH_SHORT).show();
                 return;
             }
-            saveVitalsForUser(selectedUserId);
+            try {
+                saveVitalsForUser(selectedUserId);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
@@ -144,9 +152,13 @@ public class UpdatePatientRecords extends AppCompatActivity {
             public void onResponse(Call<RecordRequest> call, Response<RecordRequest> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     RecordRequest record = response.body();
-                    allergiesInput.setText(record.allergies != null ? record.allergies : "");
-                    medicationsInput.setText(record.medications != null ? record.medications : "");
-                    problemsInput.setText(record.problems != null ? record.problems : "");
+                    try {
+                        allergiesInput.setText(record.allergies != null ? CryptClass.decrypt(record.allergies) : "");
+                        medicationsInput.setText(record.medications != null ? CryptClass.decrypt(record.medications) : "");
+                        problemsInput.setText(record.problems != null ? CryptClass.decrypt(record.problems) : "");
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 } else {
                     allergiesInput.setText("");
                     medicationsInput.setText("");
@@ -168,10 +180,10 @@ public class UpdatePatientRecords extends AppCompatActivity {
             public void onResponse(Call<VitalsRequest> call, Response<VitalsRequest> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     VitalsRequest vitals = response.body();
-                    temperatureInput.setText(String.valueOf(vitals.temperature));
-                    heartRateInput.setText(String.valueOf(vitals.heartRate));
-                    systolicInput.setText(String.valueOf(vitals.systolic));
-                    diastolicInput.setText(String.valueOf(vitals.diastolic));
+                    temperatureInput.setText(String.valueOf(CryptClass.decrypt(String.valueOf(vitals.temperature))));
+                    heartRateInput.setText(String.valueOf(CryptClass.decrypt(String.valueOf(vitals.heartRate))));
+                    systolicInput.setText(String.valueOf(CryptClass.decrypt(String.valueOf(vitals.systolic))));
+                    diastolicInput.setText(String.valueOf(CryptClass.decrypt(String.valueOf(vitals.diastolic))));
                 } else {
                     temperatureInput.setText("");
                     heartRateInput.setText("");
@@ -188,13 +200,18 @@ public class UpdatePatientRecords extends AppCompatActivity {
     }
 
     // 🩺 NEW - Save vitals
-    private void saveVitalsForUser(int userID) {
+    private void saveVitalsForUser(int userID) throws Exception {
         double temperature = temperatureInput.getText().toString().isEmpty() ? 0 : Double.parseDouble(temperatureInput.getText().toString());
         int heartRate = heartRateInput.getText().toString().isEmpty() ? 0 : Integer.parseInt(heartRateInput.getText().toString());
         int systolic = systolicInput.getText().toString().isEmpty() ? 0 : Integer.parseInt(systolicInput.getText().toString());
         int diastolic = diastolicInput.getText().toString().isEmpty() ? 0 : Integer.parseInt(diastolicInput.getText().toString());
+        String encryptedTemperature = CryptClass.encrypt(String.valueOf(temperature));
+        String encryptedHeartRate = CryptClass.encrypt(String.valueOf(heartRate));
+        String encryptedSystolic = CryptClass.encrypt(String.valueOf(systolic));
+        String encryptedDiastolic = CryptClass.encrypt(String.valueOf(diastolic));
 
-        VitalsRequest vitals = new VitalsRequest(userID, temperature, heartRate, systolic, diastolic);
+
+        VitalsRequest vitals = new VitalsRequest(userID, encryptedTemperature, encryptedHeartRate, encryptedSystolic, encryptedDiastolic);
 
         apiService.updateVitals(vitals).enqueue(new Callback<VitalsRequest>() {
             @Override
@@ -214,12 +231,12 @@ public class UpdatePatientRecords extends AppCompatActivity {
         });
     }
 
-    private void saveRecordForUser(int userID) {
+    private void saveRecordForUser(int userID) throws Exception {
         RecordRequest record = new RecordRequest(
                 userID,
-                allergiesInput.getText().toString().trim(),
-                medicationsInput.getText().toString().trim(),
-                problemsInput.getText().toString().trim()
+                CryptClass.encrypt(allergiesInput.getText().toString().trim()),
+                CryptClass.encrypt(medicationsInput.getText().toString().trim()),
+                CryptClass.encrypt(problemsInput.getText().toString().trim())
         );
 
         apiService.updateRecord(record).enqueue(new Callback<RecordRequest>() {

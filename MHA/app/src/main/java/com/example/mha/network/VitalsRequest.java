@@ -2,12 +2,12 @@ package com.example.mha.network;
 
 public class VitalsRequest {
     public int userID;
-    public double temperature;
-    public int heartRate;
-    public int systolic;
-    public int diastolic;
+    public String temperature;
+    public String heartRate;
+    public String systolic;
+    public String diastolic;
 
-    public VitalsRequest(int userID, double temperature, int heartRate, int systolic, int diastolic) {
+    public VitalsRequest(int userID, String temperature, String heartRate, String systolic, String diastolic) {
         this.userID = userID;
         this.temperature = temperature;
         this.heartRate = heartRate;

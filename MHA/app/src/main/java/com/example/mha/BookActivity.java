@@ -93,7 +93,7 @@ public class BookActivity extends AppCompatActivity {
                     hospitalList = response.body();
                     List<String> hospitalNames = new ArrayList<>();
                     for (HospitalRequest hospital : hospitalList) {
-                        hospitalNames.add(hospital.name + " (" + hospital.city + ")");
+                        hospitalNames.add( CryptClass.decrypt(hospital.name) + " (" + CryptClass.decrypt(hospital.city) + ")");
                     }
 
                     ArrayAdapter<String> adapter = new ArrayAdapter<>(BookActivity.this,
@@ -124,7 +124,7 @@ public class BookActivity extends AppCompatActivity {
                     for (AppointmentRequest appt : response.body()) {
                         if (appt.hospitalID == hospitalId && "available".equalsIgnoreCase(appt.status)) {
                             appointmentList.add(appt);
-                            timeSlots.add(appt.appointmentDate + " " + appt.appointmentTime);
+                            timeSlots.add(CryptClass.decrypt(appt.appointmentDate) + " " + CryptClass.decrypt(appt.appointmentTime));
                         }
                     }
 
@@ -162,10 +162,10 @@ public class BookActivity extends AppCompatActivity {
             public void onResponse(Call<List<AppointmentRequest>> call, Response<List<AppointmentRequest>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     boolean hasConflict = false;
-                    String newDate = selectedAppointment.appointmentDate.split("T")[0];
+                    String newDate = CryptClass.decrypt(selectedAppointment.appointmentDate.split("T")[0]);
 
                     for (AppointmentRequest appt : response.body()) {
-                        String existingDate = appt.appointmentDate.split("T")[0];
+                        String existingDate = CryptClass.decrypt(appt.appointmentDate.split("T")[0]);
                         if (existingDate.equals(newDate)) {
                             hasConflict = true;
                             break;

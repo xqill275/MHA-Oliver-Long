@@ -50,7 +50,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         AppointmentWithId booking = bookings.get(position);
 
         // Show basic appointment info
-        holder.tvAppointmentInfo.setText(booking.appointment.appointmentDate + " at " + booking.appointment.appointmentTime);
+        holder.tvAppointmentInfo.setText(CryptClass.decrypt(booking.appointment.appointmentDate) + " at " + CryptClass.decrypt(booking.appointment.appointmentTime));
         holder.tvHospitalName.setText("Loading hospital...");
 
         // Fetch hospital info
@@ -79,7 +79,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
             public void onResponse(Call<HospitalRequest> call, Response<HospitalRequest> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     HospitalRequest hospital = response.body();
-                    holder.tvHospitalName.setText(hospital.getName() + " - " + hospital.getCity());
+                    holder.tvHospitalName.setText(CryptClass.decrypt(hospital.name) + " - " + CryptClass.decrypt(hospital.city));
                 } else {
                     holder.tvHospitalName.setText("Hospital not found");
                 }
