@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.room.common.jvm)
     implementation(libs.room.runtime)
+    implementation(libs.androidx.junit)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -54,4 +55,7 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.3.1")
     implementation("androidx.camera:camera-lifecycle:1.3.1")
     implementation("androidx.camera:camera-view:1.3.1")
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("org.mockito:mockito-android:5.8.0")
+
 }
