@@ -8,7 +8,6 @@ const autoSec = require("./autoSecurityScript")
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
-app.use(autoSec);
 
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
