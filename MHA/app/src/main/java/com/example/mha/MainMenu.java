@@ -41,16 +41,24 @@ public class MainMenu extends AppCompatActivity {
             finish();
         }
 
+
+
         if ("Admin".equals(userRole)) {
             adminBtn.setVisibility(View.VISIBLE);
+            apointBtn.setVisibility(View.VISIBLE);
         } else {
             adminBtn.setVisibility(View.GONE);
         }
 
         if ("Doctor".equals(userRole)) {
             recordBtn.setVisibility(View.VISIBLE);
+            apointBtn.setVisibility(View.VISIBLE);
         } else {
             recordBtn.setVisibility(View.GONE);
+        }
+
+        if ("Patient".equals(userRole)) {
+            apointBtn.setVisibility(View.VISIBLE);
         }
 
 

@@ -57,5 +57,7 @@ dependencies {
     implementation("androidx.camera:camera-view:1.3.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("org.mockito:mockito-android:5.8.0")
+    implementation("androidx.biometric:biometric:1.1.0")
+
 
 }
