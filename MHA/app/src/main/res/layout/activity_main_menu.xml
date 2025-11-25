@@ -11,29 +11,30 @@
         android:id="@+id/AppointmentBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="11dp"
-        android:layout_marginBottom="73dp"
         android:text="Appointment"
-        app:layout_constraintBottom_toTopOf="@+id/RecordsBtn"
-        app:layout_constraintEnd_toEndOf="@+id/RecordsBtn" />
-
-    <Button
-        android:id="@+id/AdminButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="73dp"
-        android:layout_marginEnd="31dp"
-        android:text="Admin"
-        app:layout_constraintEnd_toEndOf="@+id/RecordsBtn"
-        app:layout_constraintTop_toBottomOf="@+id/RecordsBtn" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="150dp" />
 
     <Button
         android:id="@+id/RecordsBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="293dp"
         android:text="Medical Records"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/AppointmentBtn"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="40dp" />
+
+    <Button
+        android:id="@+id/AdminButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Admin"
+        app:layout_constraintTop_toBottomOf="@+id/RecordsBtn"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="40dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

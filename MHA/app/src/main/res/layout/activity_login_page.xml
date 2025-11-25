@@ -21,45 +21,55 @@
         android:id="@+id/LoginNHSNUM"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="2dp"
-        android:layout_marginBottom="46dp"
+        android:layout_marginTop="66dp"
         android:ems="10"
         android:hint="NHS number"
         android:inputType="number"
-        app:layout_constraintBottom_toTopOf="@+id/LoginEmail"
-        app:layout_constraintStart_toStartOf="@+id/LoginEmail" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Back_Button_login" />
 
     <EditText
         android:id="@+id/LoginEmail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="252dp"
+        android:layout_marginTop="46dp"
+        android:layout_marginEnd="2dp"
         android:ems="10"
         android:hint="Email"
         android:inputType="textEmailAddress"
-        app:layout_constraintStart_toStartOf="@+id/LoginDOB"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="@+id/LoginNHSNUM"
+        app:layout_constraintTop_toBottomOf="@+id/LoginNHSNUM" />
 
     <EditText
         android:id="@+id/LoginDOB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="60dp"
+        android:layout_marginEnd="4dp"
         android:ems="10"
         android:hint="DOB (dd/mm/yyyy)"
         android:inputType="date"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/LoginEmail"
         app:layout_constraintTop_toBottomOf="@+id/LoginEmail" />
+
+    <Button
+        android:id="@+id/fingerprintBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:layout_marginTop="63dp"
+        android:text="Login with Fingerprint"
+        app:layout_constraintStart_toStartOf="@+id/LoginDOB"
+        app:layout_constraintTop_toBottomOf="@+id/LoginDOB" />
 
     <Button
         android:id="@+id/LoginActivityButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="124dp"
+        android:layout_marginTop="46dp"
         android:text="Login"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/fingerprintBtn" />
 </androidx.constraintlayout.widget.ConstraintLayout>
