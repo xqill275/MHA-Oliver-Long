@@ -1,5 +1,7 @@
 package com.example.mha.network;
 
+
+
 public class AppointmentRequest {
     public int appointmentID;
     public int hospitalID;

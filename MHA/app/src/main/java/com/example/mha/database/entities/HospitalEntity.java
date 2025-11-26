@@ -1,20 +1,17 @@
-package com.example.mha;
+package com.example.mha.database.entities;
 
-import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "hospitals")
 public class HospitalEntity {
+
     @PrimaryKey(autoGenerate = true)
-    public int hospitalID;
+    public int localId;   // ✅ Room-only ID
 
-    @ColumnInfo(name = "name")
+    public int hospitalID; // ✅ SERVER ID (must NOT auto-generate)
+
     public String name;
-
-    @ColumnInfo(name = "city")
     public String city;
-
-    @ColumnInfo(name = "postcode")
     public String postcode;
 }
