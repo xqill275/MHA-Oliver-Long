@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey;
 public class UserEntity {
 
     @PrimaryKey
-    public int UID;   // ✅ NOT auto-generated anymore
+    public int UID;   // NOT auto-generated anymore
 
     public String FullName;
     public String Email;

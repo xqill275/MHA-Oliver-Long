@@ -1,6 +1,7 @@
 package com.example.mha.repository;
 
 import android.content.Context;
+import android.os.Build;
 
 import com.example.mha.database.AppDatabase;
 import com.example.mha.database.dao.RecordsDao;
@@ -50,6 +51,9 @@ public class RecordRepository {
 
     private String isoNow() {
         // Java 8+ style ISO time. If using older, replace with SimpleDateFormat.
-        return DateTimeFormatter.ISO_INSTANT.format(Instant.now().atOffset(ZoneOffset.UTC));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            return DateTimeFormatter.ISO_INSTANT.format(Instant.now().atOffset(ZoneOffset.UTC));
+        }
+        return "";
     }
 }

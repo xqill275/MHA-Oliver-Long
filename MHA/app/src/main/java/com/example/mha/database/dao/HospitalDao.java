@@ -11,12 +11,14 @@ import java.util.List;
 
 @Dao
 public interface HospitalDao {
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(HospitalEntity hospital);
 
     @Query("SELECT * FROM hospitals")
     List<HospitalEntity> getAll();
 
+    // ✅ SERVER hospitalID lookup (NOT Room localId)
     @Query("SELECT * FROM hospitals WHERE hospitalID = :id")
     HospitalEntity getById(int id);
 

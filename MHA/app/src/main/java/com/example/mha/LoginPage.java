@@ -68,9 +68,9 @@ public class LoginPage extends AppCompatActivity {
         fingerprintBtn.setOnClickListener(v -> authenticateFingerprint());
     }
 
-    // --------------------------------------------------
+
     // LOGIN USING REPOSITORY (ONLINE + OFFLINE)
-    // --------------------------------------------------
+
     private void login() throws Exception {
         String nhsText = LoginNhs.getText().toString().trim();
         String emailText = LoginEmail.getText().toString().trim();
@@ -144,9 +144,9 @@ public class LoginPage extends AppCompatActivity {
         });
     }
 
-    // --------------------------------------------------
+
     // FINGERPRINT LOGIN
-    // --------------------------------------------------
+
     private void authenticateFingerprint() {
 
         BiometricManager biometricManager = BiometricManager.from(this);

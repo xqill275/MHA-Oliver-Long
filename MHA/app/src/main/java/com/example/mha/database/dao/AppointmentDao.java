@@ -4,8 +4,6 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
-import androidx.room.Update;
-import androidx.room.Transaction;
 
 import com.example.mha.database.entities.AppointmentEntity;
 
@@ -13,6 +11,7 @@ import java.util.List;
 
 @Dao
 public interface AppointmentDao {
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(AppointmentEntity appointment);
 
@@ -25,17 +24,18 @@ public interface AppointmentDao {
     @Query("SELECT * FROM appointments WHERE appointmentID = :appointmentId LIMIT 1")
     AppointmentEntity getById(int appointmentId);
 
-    @Update
-    void update(AppointmentEntity appointment);
+    // BOOK BY *LOCAL ID* ONLY
+    @Query("UPDATE appointments SET userID = :userId, status = 'booked' WHERE localId = :localId AND status = 'available'")
+    int bookByLocalId(int localId, int userId);
 
-    @Query("DELETE FROM appointments")
-    void clear();
+    // CANCEL BY *LOCAL ID* ONLY
+    @Query("UPDATE appointments SET userID = NULL, status = 'available' WHERE localId = :localId")
+    int cancelByLocalId(int localId);
 
-    // Atomic update: set userID and status only if currently 'available'
-    @Query("UPDATE appointments SET userID = :userId, status = 'booked' WHERE appointmentID = :appointmentId AND status = 'available'")
-    int bookIfAvailable(int appointmentId, int userId);
+    @Query("SELECT * FROM appointments WHERE hospitalID = :hospitalId AND status = 'available'")
+    List<AppointmentEntity> getAvailableByHospital(int hospitalId);
 
-    // Cancel appointment (set userID null and status available)
-    @Query("UPDATE appointments SET userID = NULL, status = 'available' WHERE appointmentID = :appointmentId")
-    int cancelById(int appointmentId);
+    @Query("SELECT * FROM appointments WHERE userID = :userId AND appointmentDate = :appointmentDate LIMIT 1")
+    AppointmentEntity getByUserAndDate(int userId, String appointmentDate);
 }
+

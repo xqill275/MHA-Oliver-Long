@@ -7,14 +7,15 @@ import androidx.room.PrimaryKey;
 public class AppointmentEntity {
 
     @PrimaryKey(autoGenerate = true)
-    public int localId;   // ✅ ROOM ONLY ID
+    public int localId;   // ROOM ONLY ID
 
-    public int appointmentID;  // ✅ SERVER ID (NEVER autoGenerate)
+    public int appointmentID;  // SERVER ID (NEVER autoGenerate)
 
     public int hospitalID;
-    public Integer userID;  // nullable
+    public Integer userID;
     public String appointmentDate;
     public String appointmentTime;
     public String status;
 }
+
 
