@@ -64,9 +64,9 @@ public class RegisterPage extends AppCompatActivity {
     }
 
 
-    // ============================================================
+
     // VALIDATION + REGISTRATION
-    // ============================================================
+
     public void validateForm() throws Exception {
 
         String fullNameText = FullName.getText().toString().trim();
@@ -76,9 +76,9 @@ public class RegisterPage extends AppCompatActivity {
         String phoneText = PhoneNumber.getText().toString().trim();
         String roleInput = RoleIDText.getText().toString().trim();
 
-        // ------------------------------
+
         // REQUIRED FIELDS
-        // ------------------------------
+
         if (TextUtils.isEmpty(fullNameText) ||
                 TextUtils.isEmpty(emailText) ||
                 TextUtils.isEmpty(nhsText) ||
@@ -88,17 +88,17 @@ public class RegisterPage extends AppCompatActivity {
             return;
         }
 
-        // ------------------------------
+
         // EMAIL FORMAT
-        // ------------------------------
+
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(emailText).matches()) {
             toast("Please enter a valid email address.");
             return;
         }
 
-        // ------------------------------
+
         // NHS VALIDATION
-        // ------------------------------
+
         if (nhsText.length() != 10 || !nhsText.matches("\\d+")) {
             toast("NHS number must be exactly 10 digits.");
             return;
@@ -109,33 +109,33 @@ public class RegisterPage extends AppCompatActivity {
             return;
         }
 
-        // ------------------------------
+
         // DATE FORMAT (DD/MM/YYYY)
-        // ------------------------------
+
         if (!dobText.matches("^\\d{2}/\\d{2}/\\d{4}$")) {
             toast("Date of Birth must be in format DD/MM/YYYY.");
             return;
         }
 
-        // ------------------------------
+
         // PHONE NUMBER
-        // ------------------------------
+
         if (!phoneText.matches("^\\d{10,11}$")) {
             toast("Phone number must be 10–11 digits.");
             return;
         }
 
-        // ------------------------------
+
         // ROLE LOGIC
-        // ------------------------------
+
         String role = "Patient";
 
         if (roleInput.equals("1111")) role = "Admin";
         else if (roleInput.equals("2222")) role = "Doctor";
 
-        // ------------------------------
+
         // CREATE ENCRYPTED REQUEST
-        // ------------------------------
+
         UserRequest userReq = new UserRequest(
                 CryptClass.encrypt(fullNameText),
                 CryptClass.encrypt(emailText),
@@ -148,9 +148,9 @@ public class RegisterPage extends AppCompatActivity {
                 HashClass.sha256(dobText)
         );
 
-        // ------------------------------
+
         // SEND TO REPOSITORY (handles online/offline)
-        // ------------------------------
+
         userRepo.registerUser(userReq, new UserRepository.RepositoryCallback() {
             @Override
             public void onSuccess() {
@@ -167,9 +167,9 @@ public class RegisterPage extends AppCompatActivity {
     }
 
 
-    // ============================================================
+
     // NHS CHECK DIGIT ALGORITHM
-    // ============================================================
+
     public boolean verifyNhsNum(String nhsNumber) {
 
         if (nhsNumber.length() != 10) return false;
@@ -202,9 +202,9 @@ public class RegisterPage extends AppCompatActivity {
         return result;
     }
 
-    // ============================================================
+
     // HELPERS
-    // ============================================================
+
     private void toast(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
     }

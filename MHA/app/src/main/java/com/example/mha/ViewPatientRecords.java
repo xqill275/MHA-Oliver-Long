@@ -5,24 +5,21 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
+import com.example.mha.database.entities.RecordEntity;
+import com.example.mha.database.entities.VitalEntity;
 import com.example.mha.network.ApiService;
 import com.example.mha.network.RecordRequest;
 import com.example.mha.network.RetrofitClient;
 import com.example.mha.network.UserRequest;
 import com.example.mha.network.VitalsRequest;
+import com.example.mha.repository.RecordRepository;
+import com.example.mha.repository.UserRepository;
+import com.example.mha.repository.VitalsRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +31,10 @@ import retrofit2.Response;
 public class ViewPatientRecords extends AppCompatActivity {
 
     private ApiService apiService;
+    private UserRepository userRepo;
+    private RecordRepository recordRepo;
+    private VitalsRepository vitalsRepo;
+
     private Spinner userSpinner;
     private TextView recordText, vitalsText;
     Button scanBarcodeBtn;
@@ -48,20 +49,17 @@ public class ViewPatientRecords extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_view_patient_records);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
         userSpinner = findViewById(R.id.userSpinner);
         recordText = findViewById(R.id.recordText);
         vitalsText = findViewById(R.id.vitalsText);
         scanBarcodeBtn = findViewById(R.id.scanBarcodeBtn);
 
         apiService = RetrofitClient.getClient().create(ApiService.class);
+        userRepo = new UserRepository(this);
+        recordRepo = new RecordRepository(this);
+        vitalsRepo = new VitalsRepository(this);
 
-        fetchUsersFromApi();
+        fetchUsers();
 
         scanBarcodeBtn.setOnClickListener(v -> {
             Intent intent = new Intent(ViewPatientRecords.this, BarcodeScannerActivity.class);
@@ -85,86 +83,166 @@ public class ViewPatientRecords extends AppCompatActivity {
         });
     }
 
-    private void fetchUsersFromApi() {
-        apiService.getUsers().enqueue(new Callback<List<UserRequest>>() {
+
+    // USERS (ONLINE + OFFLINE)
+
+
+    private void fetchUsers() {
+
+        userRepo.getUsers(new Callback<List<UserRequest>>() {
             @Override
             public void onResponse(Call<List<UserRequest>> call, Response<List<UserRequest>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    users = response.body();
-                    userNames.clear();
 
-                    for (UserRequest user : users) {
-                        try {
-                            String name = CryptClass.decrypt(user.FullName);
-                            userNames.add(name + " (ID: " + user.UID + ")");
-                        } catch (Exception e) {
-                            Log.e("ViewRecords", "Decrypt error for user " + user.UID, e);
-                        }
-                    }
-
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(ViewPatientRecords.this,
-                            android.R.layout.simple_spinner_item, userNames);
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    userSpinner.setAdapter(adapter);
-                } else {
-                    Toast.makeText(ViewPatientRecords.this, "Failed to load users", Toast.LENGTH_SHORT).show();
+                if (response.body() == null || response.body().isEmpty()) {
+                    Toast.makeText(ViewPatientRecords.this, "No users available", Toast.LENGTH_SHORT).show();
+                    return;
                 }
+
+                users = response.body();
+                userNames.clear();
+
+                for (UserRequest user : users) {
+                    try {
+                        userNames.add(CryptClass.decrypt(user.FullName) + " (ID: " + user.UID + ")");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                userSpinner.setAdapter(new ArrayAdapter<>(
+                        ViewPatientRecords.this,
+                        android.R.layout.simple_spinner_item,
+                        userNames
+                ));
             }
 
             @Override
             public void onFailure(Call<List<UserRequest>> call, Throwable t) {
-                Toast.makeText(ViewPatientRecords.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(ViewPatientRecords.this, "Failed to load users", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
+
+    // RECORD (ONLINE + OFFLINE)
+
+
     private void fetchRecordForUser(int userID) {
+
         apiService.getRecord(userID).enqueue(new Callback<RecordRequest>() {
             @SuppressLint("SetTextI18n")
             @Override
             public void onResponse(Call<RecordRequest> call, Response<RecordRequest> response) {
+
                 if (response.isSuccessful() && response.body() != null) {
-                    RecordRequest record = response.body();
-                    recordText.setText(
-                            "Allergies: " + CryptClass.decrypt(record.allergies) + "\n" +
-                                    "Medications: " + CryptClass.decrypt(record.medications) + "\n" +
-                                    "Problems: " + CryptClass.decrypt(record.problems) + "\n");
-                } else {
-                    recordText.setText("No medical record found for this user.");
+
+                    RecordRequest r = response.body();
+
+                    recordRepo.upsertRecord(
+                            userID,
+                            r.allergies,
+                            r.medications,
+                            r.problems
+                    );
+
+                    try {
+                        recordText.setText(
+                                "Allergies: " + CryptClass.decrypt(r.allergies) + "\n" +
+                                        "Medications: " + CryptClass.decrypt(r.medications) + "\n" +
+                                        "Problems: " + CryptClass.decrypt(r.problems)
+                        );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
             @SuppressLint("SetTextI18n")
             @Override
             public void onFailure(Call<RecordRequest> call, Throwable t) {
-                recordText.setText("Failed to load record: " + t.getMessage());
+
+                // OFFLINE FALLBACK
+                RecordEntity local = recordRepo.getByUser(userID);
+                if (local != null) {
+                    try {
+                        recordText.setText(
+                                "Allergies: " + CryptClass.decrypt(local.allergies) + "\n" +
+                                        "Medications: " + CryptClass.decrypt(local.medications) + "\n" +
+                                        "Problems: " + CryptClass.decrypt(local.problems)
+                        );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    recordText.setText("No record found (offline)");
+                }
             }
         });
     }
 
+
+    //  VITALS (ONLINE + OFFLINE)
+
+
     private void fetchVitalsForUser(int userID) {
+
         apiService.getVitals(userID).enqueue(new Callback<VitalsRequest>() {
             @SuppressLint("SetTextI18n")
             @Override
             public void onResponse(Call<VitalsRequest> call, Response<VitalsRequest> response) {
+
                 if (response.isSuccessful() && response.body() != null) {
-                    VitalsRequest vitals = response.body();
-                    vitalsText.setText(
-                            "Temperature: " + CryptClass.decrypt(vitals.temperature) + "°C\n" +
-                                    "Heart Rate: " + CryptClass.decrypt(vitals.heartRate) + " bpm\n" +
-                                    "Systolic: " + CryptClass.decrypt(vitals.systolic) + " mmHg\n" +
-                                    "Diastolic: " + CryptClass.decrypt(vitals.diastolic) + " mmHg\n");
-                } else {
-                    vitalsText.setText("No vitals found for this user.");
+
+                    VitalsRequest v = response.body();
+
+                    vitalsRepo.upsertVitals(
+                            userID,
+                            v.temperature,
+                            v.heartRate,
+                            v.systolic,
+                            v.diastolic
+                    );
+
+                    try {
+                        vitalsText.setText(
+                                "Temperature: " + CryptClass.decrypt(v.temperature) + "°C\n" +
+                                        "Heart Rate: " + CryptClass.decrypt(v.heartRate) + " bpm\n" +
+                                        "Systolic: " + CryptClass.decrypt(v.systolic) + " mmHg\n" +
+                                        "Diastolic: " + CryptClass.decrypt(v.diastolic) + " mmHg"
+                        );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
+            @SuppressLint("SetTextI18n")
             @Override
             public void onFailure(Call<VitalsRequest> call, Throwable t) {
-                vitalsText.setText("Failed to load vitals: " + t.getMessage());
+
+                // OFFLINE FALLBACK
+                VitalEntity local = vitalsRepo.getLatestVitalsForUser(userID);
+                if (local != null) {
+                    try {
+                        vitalsText.setText(
+                                "Temperature: " + CryptClass.decrypt(local.temperature) + "°C\n" +
+                                        "Heart Rate: " + CryptClass.decrypt(local.heartRate) + " bpm\n" +
+                                        "Systolic: " + CryptClass.decrypt(local.systolic) + " mmHg\n" +
+                                        "Diastolic: " + CryptClass.decrypt(local.diastolic) + " mmHg"
+                        );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    vitalsText.setText("No vitals found (offline)");
+                }
             }
         });
     }
+
+
+    // BARCODE RESULT
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -177,11 +255,10 @@ public class ViewPatientRecords extends AppCompatActivity {
                 for (int i = 0; i < users.size(); i++) {
                     if (users.get(i).UID == scannedUserId) {
 
-                        userSpinner.setSelection(i); // Auto select user
+                        userSpinner.setSelection(i);
 
                         fetchRecordForUser(scannedUserId);
                         fetchVitalsForUser(scannedUserId);
-
                         break;
                     }
                 }

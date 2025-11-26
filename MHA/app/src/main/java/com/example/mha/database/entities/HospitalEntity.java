@@ -7,9 +7,9 @@ import androidx.room.PrimaryKey;
 public class HospitalEntity {
 
     @PrimaryKey(autoGenerate = true)
-    public int localId;   // ✅ Room-only ID
+    public int localId;   // Room-only ID
 
-    public int hospitalID; // ✅ SERVER ID (must NOT auto-generate)
+    public int hospitalID; // SERVER ID (must NOT auto-generate)
 
     public String name;
     public String city;

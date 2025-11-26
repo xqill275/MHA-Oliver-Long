@@ -48,7 +48,6 @@ public class AdminPage extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_page);
 
-        // 🔹 UI References
         userSpinner = findViewById(R.id.userSpinner);
         roleSpinner = findViewById(R.id.roleSpinner);
         updateRoleButton = findViewById(R.id.updateRoleButton);
@@ -63,145 +62,95 @@ public class AdminPage extends AppCompatActivity {
         appointmentTimeInput = findViewById(R.id.appointmentTimeInput);
         addAppointmentButton = findViewById(R.id.addAppointmentButton);
 
-        // ✅ Repositories
         userRepo = new UserRepository(this);
         apiService = RetrofitClient.getClient().create(ApiService.class);
-        HospitalRepository hospitalRepository = new HospitalRepository(this);
 
-
-        // ✅ Load users OFFLINE + ONLINE
         fetchUsers();
-
-        // ✅ Load hospitals (still online only for now)
         fetchHospitalsFromApi();
 
-        // 🔹 Role dropdown
         ArrayAdapter<String> roleAdapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_spinner_item,
                 new String[]{"Patient", "Admin", "Doctor"}
         );
-        roleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         roleSpinner.setAdapter(roleAdapter);
 
-        // ✅ OFFLINE + ONLINE UPDATE ROLE
         updateRoleButton.setOnClickListener(v -> {
+            int index = userSpinner.getSelectedItemPosition();
+            if (index < 0 || index >= users.size()) return;
 
-            int selectedUserIndex = userSpinner.getSelectedItemPosition();
-            if (selectedUserIndex < 0 || selectedUserIndex >= users.size()) {
-                Toast.makeText(this, "Please select a user.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            UserRequest selectedUser = users.get(selectedUserIndex);
-
-            String encryptedRole;
             try {
-                encryptedRole = CryptClass.encrypt(
-                        roleSpinner.getSelectedItem().toString()
+                updateUserRole(
+                        users.get(index).UID,
+                        CryptClass.encrypt(roleSpinner.getSelectedItem().toString())
                 );
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
-
-            updateUserRole(selectedUser.UID, encryptedRole);
         });
 
-        // 🔹 Add hospital button (unchanged)
         addHospitalButton.setOnClickListener(v -> {
-            String name = hospitalNameInput.getText().toString().trim();
-            String city = hospitalCityInput.getText().toString().trim();
-            String postcode = hospitalPostcodeInput.getText().toString().trim();
-
-            if (name.isEmpty() || city.isEmpty() || postcode.isEmpty()) {
-                Toast.makeText(this, "Please fill in all hospital details.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
             try {
                 addHospital(
-                        CryptClass.encrypt(name),
-                        CryptClass.encrypt(city),
-                        CryptClass.encrypt(postcode)
+                        CryptClass.encrypt(hospitalNameInput.getText().toString()),
+                        CryptClass.encrypt(hospitalCityInput.getText().toString()),
+                        CryptClass.encrypt(hospitalPostcodeInput.getText().toString())
                 );
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         });
 
-        // 🔹 Add appointment button (unchanged)
         addAppointmentButton.setOnClickListener(v -> {
-
-            int selectedHospitalIndex = hospitalSpinner.getSelectedItemPosition();
-            if (selectedHospitalIndex < 0 || selectedHospitalIndex >= hospitals.size()) {
-                Toast.makeText(this, "Please select a hospital.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            int hospitalID = hospitals.get(selectedHospitalIndex).hospitalID;
-            String date = appointmentDateInput.getText().toString().trim();
-            String time = appointmentTimeInput.getText().toString().trim();
-
-            if (date.isEmpty() || time.isEmpty()) {
-                Toast.makeText(this, "Please fill in both date and time.", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            int index = hospitalSpinner.getSelectedItemPosition();
+            if (index < 0 || index >= hospitals.size()) return;
 
             try {
-                addAppointment(hospitalID, date, time);
+                addAppointment(
+                        hospitals.get(index).hospitalID,
+                        appointmentDateInput.getText().toString(),
+                        appointmentTimeInput.getText().toString()
+                );
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         });
     }
 
-    // ✅ OFFLINE + ONLINE USER FETCH
+    // USERS
     private void fetchUsers() {
 
         userRepo.getUsers(new Callback<List<UserRequest>>() {
             @Override
             public void onResponse(Call<List<UserRequest>> call, Response<List<UserRequest>> response) {
 
-                if (response.body() == null) {
-                    Toast.makeText(AdminPage.this, "No users found", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+                if (response.body() == null) return;
 
                 users = response.body();
                 userNames.clear();
 
                 for (UserRequest user : users) {
                     try {
-                        String name = CryptClass.decrypt(user.FullName);
-                        userNames.add(name + " (ID: " + user.UID + ")");
+                        userNames.add(CryptClass.decrypt(user.FullName) + " (ID: " + user.UID + ")");
                     } catch (Exception e) {
-                        Log.e("AdminPage", "Decrypt error", e);
+                        Log.e("Admin", "Decrypt Error", e);
                     }
                 }
 
-                ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
+                userSpinner.setAdapter(new ArrayAdapter<>(
                         AdminPage.this,
                         android.R.layout.simple_spinner_item,
                         userNames
-                );
-
-                userAdapter.setDropDownViewResource(
-                        android.R.layout.simple_spinner_dropdown_item
-                );
-
-                userSpinner.setAdapter(userAdapter);
+                ));
             }
 
             @Override
             public void onFailure(Call<List<UserRequest>> call, Throwable t) {
-                Toast.makeText(AdminPage.this,
-                        "Error loading users: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminPage.this, t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // ✅ OFFLINE + ONLINE ROLE UPDATE
     private void updateUserRole(int uid, String encryptedRole) {
 
         userRepo.updateUserRole(uid, encryptedRole,
@@ -209,154 +158,156 @@ public class AdminPage extends AppCompatActivity {
 
                     @Override
                     public void onSuccess() {
-                        runOnUiThread(() ->
-                                Toast.makeText(AdminPage.this,
-                                        "Role updated successfully!",
-                                        Toast.LENGTH_SHORT).show()
-                        );
+                        Toast.makeText(AdminPage.this, "Role Updated", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onFailure(String message) {
-                        runOnUiThread(() ->
-                                Toast.makeText(AdminPage.this,
-                                        "Update failed: " + message,
-                                        Toast.LENGTH_SHORT).show()
-                        );
+                        Toast.makeText(AdminPage.this, message, Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
-    // 🔹 Fetch hospitals (unchanged)
+    // HOSPITALS (ONLINE + OFFLINE)
     private void fetchHospitalsFromApi() {
 
         apiService.getHospitals().enqueue(new Callback<List<HospitalRequest>>() {
+
             @Override
             public void onResponse(Call<List<HospitalRequest>> call,
                                    Response<List<HospitalRequest>> response) {
 
-                if (response.isSuccessful() && response.body() != null) {
-                    hospitals = response.body();
-                    hospitalNames.clear();
-
-                    for (HospitalRequest hospital : hospitals) {
-                        try {
-                            hospitalNames.add(
-                                    CryptClass.decrypt(hospital.name) +
-                                            " (" +
-                                            CryptClass.decrypt(hospital.city)
-                                            + ")"
-                            );
-                        } catch (Exception ignored) {}
-                    }
-
-                    ArrayAdapter<String> hospitalAdapter =
-                            new ArrayAdapter<>(AdminPage.this,
-                                    android.R.layout.simple_spinner_item,
-                                    hospitalNames
-                            );
-
-                    hospitalAdapter.setDropDownViewResource(
-                            android.R.layout.simple_spinner_dropdown_item
-                    );
-
-                    hospitalSpinner.setAdapter(hospitalAdapter);
-
-                } else {
-                    Toast.makeText(AdminPage.this,
-                            "Failed to load hospitals",
-                            Toast.LENGTH_SHORT).show();
+                if (!response.isSuccessful() || response.body() == null) {
+                    fetchHospitalsFromRoomFallback();
+                    return;
                 }
+
+                hospitals = response.body();
+                hospitalNames.clear();
+
+                for (HospitalRequest hospital : hospitals) {
+                    try {
+                        hospitalNames.add(
+                                CryptClass.decrypt(hospital.name) +
+                                        " (" +
+                                        CryptClass.decrypt(hospital.city)
+                                        + ")"
+                        );
+                    } catch (Exception ignored) {}
+                }
+
+                hospitalSpinner.setAdapter(new ArrayAdapter<>(
+                        AdminPage.this,
+                        android.R.layout.simple_spinner_item,
+                        hospitalNames
+                ));
             }
 
             @Override
             public void onFailure(Call<List<HospitalRequest>> call, Throwable t) {
-                Toast.makeText(AdminPage.this,
-                        "Network error: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                fetchHospitalsFromRoomFallback();
             }
         });
     }
 
-    // 🔹 Add hospital (unchanged)
-    private void addHospital(String name, String city, String postcode) {
+    private void fetchHospitalsFromRoomFallback() {
 
-        HospitalRequest hospital =
-                new HospitalRequest(name, city, postcode);
         HospitalRepository hospitalRepository = new HospitalRepository(this);
 
+        new Thread(() -> {
 
-        apiService.addHospital(hospital).enqueue(new Callback<Void>() {
+            List<HospitalEntity> localHospitals = hospitalRepository.getAll();
+            if (localHospitals == null || localHospitals.isEmpty()) return;
 
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
+            hospitals.clear();
+            hospitalNames.clear();
 
-                if (response.isSuccessful()) {
+            for (HospitalEntity h : localHospitals) {
 
-                    new Thread(() -> {
+                HospitalRequest fakeApiObj =
+                        new HospitalRequest(h.name, h.city, h.postcode);
 
-                        HospitalEntity entity = new HospitalEntity();
-                        entity.name = name;
-                        entity.city = city;
-                        entity.postcode = postcode;
+                fakeApiObj.hospitalID = h.hospitalID;
+                hospitals.add(fakeApiObj);
 
-                        // ✅ If your backend auto-generates hospitalID,
-                        // you MUST fetch hospitals again to get the real ID
-                        entity.hospitalID = 0; // temp fallback ONLY
-
-                        hospitalRepository.insert(entity);
-
-                    }).start();
-
-                    Toast.makeText(AdminPage.this,
-                            "Hospital added successfully!",
-                            Toast.LENGTH_SHORT).show();
-
-                    hospitalNameInput.setText("");
-                    hospitalCityInput.setText("");
-                    hospitalPostcodeInput.setText("");
-
-                    fetchHospitalsFromApi(); // ✅ pulls real server IDs
-
-                } else {
-                    Toast.makeText(AdminPage.this,
-                            "Failed to add hospital",
-                            Toast.LENGTH_SHORT).show();
-                }
+                try {
+                    hospitalNames.add(
+                            CryptClass.decrypt(h.name) +
+                                    " (" +
+                                    CryptClass.decrypt(h.city)
+                                    + ")"
+                    );
+                } catch (Exception ignored) {}
             }
 
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
+            runOnUiThread(() ->
+                    hospitalSpinner.setAdapter(new ArrayAdapter<>(
+                            this,
+                            android.R.layout.simple_spinner_item,
+                            hospitalNames
+                    ))
+            );
 
-                // ✅ OFFLINE SAVE
-                new Thread(() -> {
-
-                    HospitalEntity entity = new HospitalEntity();
-                    entity.name = name;
-                    entity.city = city;
-                    entity.postcode = postcode;
-
-                    entity.hospitalID = -1; // ✅ OFFLINE TEMP ID
-
-                    hospitalRepository.insert(entity);
-
-                }).start();
-
-                Toast.makeText(AdminPage.this,
-                        "Offline: Hospital saved locally & will sync later",
-                        Toast.LENGTH_LONG).show();
-
-                hospitalNameInput.setText("");
-                hospitalCityInput.setText("");
-                hospitalPostcodeInput.setText("");
-            }
-        });
+        }).start();
     }
 
-    // 🔹 Add appointment (unchanged)
-    private void addAppointment(int hospitalID,
-                                String date,
-                                String time) throws Exception {
+    // ADD HOSPITAL (SERVER ID PRESERVED)
+    private void addHospital(String name, String city, String postcode) {
+
+        HospitalRepository repo = new HospitalRepository(this);
+
+        apiService.addHospital(new HospitalRequest(name, city, postcode))
+                .enqueue(new Callback<Void>() {   // FIXED GENERIC TYPE
+
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+
+                        new Thread(() -> {
+
+                            HospitalEntity e = new HospitalEntity();
+                            e.name = name;
+                            e.city = city;
+                            e.postcode = postcode;
+
+                            // Let ROOM auto-generate ID safely
+                            repo.insert(e);
+
+                        }).start();
+
+                        // Pull real server IDs back in
+                        fetchHospitalsFromApi();
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+
+                        // OFFLINE SAVE
+                        new Thread(() -> {
+
+                            HospitalEntity e = new HospitalEntity();
+                            e.name = name;
+                            e.city = city;
+                            e.postcode = postcode;
+
+                            //  Offline row (Room still auto-generates)
+                            repo.insert(e);
+
+                        }).start();
+
+                        Toast.makeText(
+                                AdminPage.this,
+                                "Offline: Hospital saved locally",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
+    }
+
+
+    // APPOINTMENTS (ONLINE + OFFLINE)
+    private void addAppointment(int hospitalID, String date, String time) throws Exception {
+
+        AppointmentRepository repo = new AppointmentRepository(this);
 
         AppointmentRequest appointment =
                 new AppointmentRequest(
@@ -366,57 +317,43 @@ public class AdminPage extends AppCompatActivity {
                         "available"
                 );
 
-        AppointmentRepository appointmentRepo =
-                new AppointmentRepository(this);
-
         apiService.addAppointment(appointment)
-                .enqueue(new Callback<Void>() {
+                .enqueue(new Callback<Void>() {   //  FIX: MUST BE Void
 
                     @Override
-                    public void onResponse(Call<Void> call,
-                                           Response<Void> response) {
+                    public void onResponse(Call<Void> call, Response<Void> response) {
 
-                        if (response.isSuccessful()) {
+                        new Thread(() -> {
 
-                            new Thread(() -> {
+                            AppointmentEntity entity = new AppointmentEntity();
+                            entity.hospitalID = hospitalID;
+                            entity.userID = null;
+                            entity.appointmentDate = appointment.appointmentDate;
+                            entity.appointmentTime = appointment.appointmentTime;
+                            entity.status = "available";
 
-                                AppointmentEntity entity =
-                                        new AppointmentEntity();
+                            //  Let ROOM auto-generate local ID
+                            repo.insert(entity);
 
-                                entity.hospitalID = hospitalID;
-                                entity.userID = null;
-                                entity.appointmentDate =
-                                        appointment.appointmentDate;
-                                entity.appointmentTime =
-                                        appointment.appointmentTime;
-                                entity.status = "available";
+                        }).start();
 
-                                entity.appointmentID = 0; // ✅ TEMP — replaced on sync
-
-                                appointmentRepo.getAllAppointments();
-                            }).start();
-
+                        runOnUiThread(() -> {
                             Toast.makeText(AdminPage.this,
-                                    "Appointment added successfully!",
+                                    "Appointment added (online)",
                                     Toast.LENGTH_SHORT).show();
 
                             appointmentDateInput.setText("");
                             appointmentTimeInput.setText("");
-
-                        } else {
-                            Toast.makeText(AdminPage.this,
-                                    "Failed to add appointment",
-                                    Toast.LENGTH_SHORT).show();
-                        }
+                        });
                     }
 
                     @Override
                     public void onFailure(Call<Void> call, Throwable t) {
 
-                        // ✅ OFFLINE SAVE
                         new Thread(() -> {
 
-                            appointmentRepo.addAppointmentSlotOffline(
+                            // OFFLINE SAVE
+                            repo.addAppointmentSlotOffline(
                                     hospitalID,
                                     appointment.appointmentDate,
                                     appointment.appointmentTime
@@ -424,16 +361,15 @@ public class AdminPage extends AppCompatActivity {
 
                         }).start();
 
-                        Toast.makeText(AdminPage.this,
-                                "Offline: Appointment saved locally",
-                                Toast.LENGTH_LONG).show();
+                        runOnUiThread(() -> {
+                            Toast.makeText(AdminPage.this,
+                                    "Offline: Appointment saved locally",
+                                    Toast.LENGTH_SHORT).show();
 
-                        appointmentDateInput.setText("");
-                        appointmentTimeInput.setText("");
+                            appointmentDateInput.setText("");
+                            appointmentTimeInput.setText("");
+                        });
                     }
                 });
     }
-
-
-
 }

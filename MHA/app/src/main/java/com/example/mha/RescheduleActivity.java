@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.mha.network.ApiService;
 import com.example.mha.network.AppointmentRequest;
 import com.example.mha.network.RetrofitClient;
+import com.example.mha.repository.AppointmentRepository;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,27 +54,27 @@ public class RescheduleActivity extends AppCompatActivity {
             return insets;
         });
 
-        // 🔹 UI references
+        // UI references
         tvCurrentAppointment = findViewById(R.id.tvCurrentAppointment);
         spinnerNewTime = findViewById(R.id.spinnerNewTime);
         btnConfirmReschedule = findViewById(R.id.btnConfirmReschedule);
 
         apiService = RetrofitClient.getClient().create(ApiService.class);
 
-        // 🔹 Get data from intent
+        //  Get data from intent
         oldAppointmentId = getIntent().getIntExtra("AppointmentID", -1);
         hospitalId = getIntent().getIntExtra("HospitalID", -1);
         userId = getIntent().getIntExtra("UserID", -1);
         oldDate = CryptClass.decrypt(getIntent().getStringExtra("OldDate"));
         oldTime = CryptClass.decrypt(getIntent().getStringExtra("OldTime"));
 
-        // 🔹 Display current appointment
+        //  Display current appointment
         tvCurrentAppointment.setText("Current: " + oldDate + " at " + oldTime);
 
-        // 🔹 Load available new time slots for the same hospital
+        //  Load available new time slots for the same hospital
         loadAvailableAppointments();
 
-        // 🔹 When confirm is clicked
+        //  When confirm is clicked
         btnConfirmReschedule.setOnClickListener(v -> {
             if (selectedAppointment == null) {
                 Toast.makeText(this, "Please select a new time.", Toast.LENGTH_SHORT).show();
@@ -89,14 +90,22 @@ public class RescheduleActivity extends AppCompatActivity {
         apiService.getAppointments().enqueue(new Callback<List<AppointmentRequest>>() {
             @Override
             public void onResponse(Call<List<AppointmentRequest>> call, Response<List<AppointmentRequest>> response) {
+
                 if (response.isSuccessful() && response.body() != null) {
+
                     availableAppointments.clear();
                     List<String> timeSlots = new ArrayList<>();
 
                     for (AppointmentRequest appt : response.body()) {
-                        if (appt.hospitalID == hospitalId && "available".equalsIgnoreCase(appt.status)) {
+                        if (appt.hospitalID == hospitalId &&
+                                "available".equalsIgnoreCase(appt.status)) {
+
                             availableAppointments.add(appt);
-                            timeSlots.add( CryptClass.decrypt(appt.appointmentDate) + " " + CryptClass.decrypt(appt.appointmentTime));
+
+                            timeSlots.add(
+                                    CryptClass.decrypt(appt.appointmentDate) + " " +
+                                            CryptClass.decrypt(appt.appointmentTime)
+                            );
                         }
                     }
 
@@ -119,60 +128,144 @@ public class RescheduleActivity extends AppCompatActivity {
                             selectedAppointment = null;
                         }
                     });
-
-                } else {
-                    Toast.makeText(RescheduleActivity.this, "No available appointments found.", Toast.LENGTH_SHORT).show();
                 }
             }
 
+            //  OFFLINE FALLBACK
             @Override
             public void onFailure(Call<List<AppointmentRequest>> call, Throwable t) {
-                Toast.makeText(RescheduleActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+
+                new Thread(() -> {
+
+                    AppointmentRepository repo = new AppointmentRepository(RescheduleActivity.this);
+
+                    availableAppointments =
+                            repo.getAvailableAppointmentsOffline(hospitalId);
+
+                    List<String> timeSlots = new ArrayList<>();
+
+                    for (AppointmentRequest appt : availableAppointments) {
+
+                        timeSlots.add(
+                                CryptClass.decrypt(appt.appointmentDate) + " " +
+                                        CryptClass.decrypt(appt.appointmentTime)
+                        );
+                    }
+
+                    runOnUiThread(() -> {
+
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                                RescheduleActivity.this,
+                                android.R.layout.simple_spinner_item,
+                                timeSlots
+                        );
+
+                        spinnerNewTime.setAdapter(adapter);
+
+                        spinnerNewTime.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                                selectedAppointment = availableAppointments.get(position);
+                            }
+
+                            @Override
+                            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+                                selectedAppointment = null;
+                            }
+                        });
+                    });
+                }).start();
             }
         });
     }
 
+
     private void cancelAndBook(AppointmentRequest newAppointment) {
-        // Step 1: Cancel old appointment
+
         Map<String, Object> cancelBody = new HashMap<>();
         cancelBody.put("appointmentID", oldAppointmentId);
 
         apiService.cancelAppointment(cancelBody).enqueue(new Callback<Void>() {
+
             @Override
             public void onResponse(Call<Void> call, Response<Void> cancelResponse) {
+
                 if (cancelResponse.isSuccessful()) {
-                    // Step 2: Book the new one
+
                     Map<String, Object> bookBody = new HashMap<>();
-                    bookBody.put("appointmentID", newAppointment.appointmentID); // update this if AppointmentRequest gets appointmentID
+                    bookBody.put("appointmentID", newAppointment.appointmentID);
                     bookBody.put("userID", userId);
 
                     apiService.bookAppointment(bookBody).enqueue(new Callback<Void>() {
+
                         @Override
                         public void onResponse(Call<Void> call, Response<Void> bookResponse) {
-                            if (bookResponse.isSuccessful()) {
-                                Toast.makeText(RescheduleActivity.this, "Appointment rescheduled!", Toast.LENGTH_SHORT).show();
-                                finish();
-                            } else {
-                                Toast.makeText(RescheduleActivity.this, "Failed to book new appointment.", Toast.LENGTH_SHORT).show();
-                            }
+
+                            // ALSO UPDATE OFFLINE DB
+                            new Thread(() -> {
+                                AppointmentRepository repo =
+                                        new AppointmentRepository(RescheduleActivity.this);
+
+                                repo.cancelAppointmentOfflineByAnyId(oldAppointmentId);
+                                repo.bookAppointmentOfflineByAnyId(
+                                        newAppointment.appointmentID,
+                                        userId
+                                );
+                            }).start();
+
+                            Toast.makeText(RescheduleActivity.this,
+                                    "Appointment rescheduled!",
+                                    Toast.LENGTH_SHORT).show();
+
+                            finish();
                         }
 
                         @Override
                         public void onFailure(Call<Void> call, Throwable t) {
-                            Toast.makeText(RescheduleActivity.this, "Error booking new: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(RescheduleActivity.this,
+                                    "Error booking new: " + t.getMessage(),
+                                    Toast.LENGTH_SHORT).show();
                         }
                     });
-
-                } else {
-                    Toast.makeText(RescheduleActivity.this, "Failed to cancel old appointment.", Toast.LENGTH_SHORT).show();
                 }
             }
 
+            // FULL OFFLINE RESCHEDULE
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(RescheduleActivity.this, "Error canceling: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+
+                new Thread(() -> {
+
+                    AppointmentRepository repo =
+                            new AppointmentRepository(RescheduleActivity.this);
+
+                    boolean canceled =
+                            repo.cancelAppointmentOfflineByAnyId(oldAppointmentId);
+
+                    boolean booked =
+                            repo.bookAppointmentOfflineByAnyId(
+                                    newAppointment.appointmentID,
+                                    userId
+                            );
+
+                    runOnUiThread(() -> {
+
+                        if (canceled && booked) {
+                            Toast.makeText(RescheduleActivity.this,
+                                    "Offline: Appointment rescheduled!",
+                                    Toast.LENGTH_SHORT).show();
+                            finish();
+                        } else {
+                            Toast.makeText(RescheduleActivity.this,
+                                    "Offline reschedule failed.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                }).start();
             }
         });
     }
+
 
 }
