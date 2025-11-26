@@ -2,10 +2,8 @@ package com.example.mha;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,32 +14,34 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.mha.network.ApiService;
-import com.example.mha.network.RetrofitClient;
 import com.example.mha.network.UserRequest;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import com.example.mha.repository.UserRepository;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class RegisterPage extends AppCompatActivity {
+
     Button BackBtn, RegisterBtn;
     TextView FullName, EmailText, DateOfBirth, NHSnumber, PhoneNumber, RoleIDText;
 
+    UserRepository userRepo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_register_page);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
+        // Repository (handles online/offline sync)
+        userRepo = new UserRepository(this);
+
+        // UI references
         BackBtn = findViewById(R.id.Back_Button);
         RegisterBtn = findViewById(R.id.Register_button);
         FullName = findViewById(R.id.Full_Name);
@@ -52,172 +52,160 @@ public class RegisterPage extends AppCompatActivity {
         RoleIDText = findViewById(R.id.RoleIDEdit);
 
         BackBtn.setOnClickListener(v -> startActivity(new Intent(RegisterPage.this, MainActivity.class)));
-        RegisterBtn.setOnClickListener(V -> {
+
+        RegisterBtn.setOnClickListener(v -> {
             try {
-                ValidateForm();
+                validateForm();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                Log.e("Register", "Unexpected error", e);
+                toast("Unexpected error: " + e.getMessage());
             }
         });
-
-        Log.e("nhsNumTest", String.valueOf(verifyNhsNum("0008700338")));
-        Log.e("nhsNumTest", String.valueOf(verifyNhsNum("9434765919"))); // known valid example
     }
 
-    public void ValidateForm() throws Exception {
+
+    // ============================================================
+    // VALIDATION + REGISTRATION
+    // ============================================================
+    public void validateForm() throws Exception {
+
         String fullNameText = FullName.getText().toString().trim();
-        String email = EmailText.getText().toString().trim();
+        String emailText = EmailText.getText().toString().trim();
         String nhsText = NHSnumber.getText().toString().trim();
         String dobText = DateOfBirth.getText().toString().trim();
         String phoneText = PhoneNumber.getText().toString().trim();
-        String RoleText = RoleIDText.getText().toString().trim();
-        AppDatabase db = AppDatabase.getInstance(this);
+        String roleInput = RoleIDText.getText().toString().trim();
 
-        // Empty field check
-        if (TextUtils.isEmpty(fullNameText) || TextUtils.isEmpty(email) ||
-                TextUtils.isEmpty(nhsText) || TextUtils.isEmpty(dobText) || TextUtils.isEmpty(phoneText)){
-            Toast.makeText(this, "One or more fields are empty!", Toast.LENGTH_LONG).show();
+        // ------------------------------
+        // REQUIRED FIELDS
+        // ------------------------------
+        if (TextUtils.isEmpty(fullNameText) ||
+                TextUtils.isEmpty(emailText) ||
+                TextUtils.isEmpty(nhsText) ||
+                TextUtils.isEmpty(dobText) ||
+                TextUtils.isEmpty(phoneText)) {
+            toast("One or more fields are empty!");
             return;
         }
 
-
-        // Email format check
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(this, "Please enter a valid email address.", Toast.LENGTH_LONG).show();
+        // ------------------------------
+        // EMAIL FORMAT
+        // ------------------------------
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(emailText).matches()) {
+            toast("Please enter a valid email address.");
             return;
         }
 
-        // duplicate email check
-        if (db.usersDao().getUserByEmail(email) != null) {
-            Toast.makeText(this, "Email already registered!", Toast.LENGTH_LONG).show();
+        // ------------------------------
+        // NHS VALIDATION
+        // ------------------------------
+        if (nhsText.length() != 10 || !nhsText.matches("\\d+")) {
+            toast("NHS number must be exactly 10 digits.");
             return;
         }
 
-        // NHS number length check
-        if (nhsText.length() != 10) {
-            Toast.makeText(this, "NHS number must be exactly 10 digits.", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        if (!TextUtils.isEmpty(RoleText) && RoleText.length() != 4) {
-            Toast.makeText(this, "Your role ID should be 4 digits long", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        if (!nhsText.matches("\\d+")) {
-            Toast.makeText(this, "NHS number must contain only digits.", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        if (!phoneText.matches("\\d+")) {
-            Toast.makeText(this, "Phone number must contain only digits.", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        // NHS algorithm check
         if (!verifyNhsNum(nhsText)) {
-            Toast.makeText(this, "NHS number is not valid.", Toast.LENGTH_LONG).show();
+            toast("Invalid NHS number.");
             return;
         }
 
-        // DOB format check (e.g. DD/MM/YYYY)
+        // ------------------------------
+        // DATE FORMAT (DD/MM/YYYY)
+        // ------------------------------
         if (!dobText.matches("^\\d{2}/\\d{2}/\\d{4}$")) {
-            Toast.makeText(this, "Please use format DD/MM/YYYY for date of birth.", Toast.LENGTH_LONG).show();
+            toast("Date of Birth must be in format DD/MM/YYYY.");
             return;
         }
 
-        // Phone number length check
+        // ------------------------------
+        // PHONE NUMBER
+        // ------------------------------
         if (!phoneText.matches("^\\d{10,11}$")) {
-            Toast.makeText(this, "Please enter a valid 10–11 digit phone number.", Toast.LENGTH_LONG).show();
+            toast("Phone number must be 10–11 digits.");
             return;
         }
-        String Role = "";
-        if (RoleText.isEmpty()) {
-            Role = "Patient";
-        } else if (RoleText.equals("1111")) {
-            Role = "Admin";
-        } else if (RoleText.equals("2222")) {
-            Role = "Doctor";
-        }
 
-        UserRequest UserRequest = new UserRequest(
+        // ------------------------------
+        // ROLE LOGIC
+        // ------------------------------
+        String role = "Patient";
+
+        if (roleInput.equals("1111")) role = "Admin";
+        else if (roleInput.equals("2222")) role = "Doctor";
+
+        // ------------------------------
+        // CREATE ENCRYPTED REQUEST
+        // ------------------------------
+        UserRequest userReq = new UserRequest(
                 CryptClass.encrypt(fullNameText),
-                CryptClass.encrypt(email),
+                CryptClass.encrypt(emailText),
                 CryptClass.encrypt(phoneText),
                 CryptClass.encrypt(nhsText),
                 CryptClass.encrypt(dobText),
-                CryptClass.encrypt(Role),
-                HashClass.sha256(email),
+                CryptClass.encrypt(role),
+                HashClass.sha256(emailText),
                 HashClass.sha256(nhsText),
                 HashClass.sha256(dobText)
         );
 
-        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-        Call<Void> call = apiService.addUser(UserRequest);
-        call.enqueue(new Callback<Void>() {
+        // ------------------------------
+        // SEND TO REPOSITORY (handles online/offline)
+        // ------------------------------
+        userRepo.registerUser(userReq, new UserRepository.RepositoryCallback() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(RegisterPage.this, "User registered to server!", Toast.LENGTH_LONG).show();
-                    startActivity(new Intent(RegisterPage.this, MainActivity.class));
-                } else {
-                    Toast.makeText(RegisterPage.this, "Server error: " + response.code(), Toast.LENGTH_LONG).show();
-                }
+            public void onSuccess() {
+                toast("User registered successfully!");
+                startActivity(new Intent(RegisterPage.this, MainActivity.class));
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(RegisterPage.this, "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
-                Log.e("API", " Network error:" + t.getMessage());
+            public void onFailure(String error) {
+                toast("Error: " + error);
+                Log.e("Register", error);
             }
         });
     }
 
-    // Converts a numeric string into a list of its individual digits
-    public ArrayList<Integer> getDigits(String number) {
-        ArrayList<Integer> result = new ArrayList<>();
-        // Loop through each character in the string
-        for (int i = 0; i < number.length(); i++) {
-            // Convert the character to an integer (e.g. '5' -> 5)
-            result.add(number.charAt(i) - '0');
-        }
-        return result; // Return the list of digits
-    }
 
-    // Verifies whether an NHS number is valid according to the official check-digit algorithm
+    // ============================================================
+    // NHS CHECK DIGIT ALGORITHM
+    // ============================================================
     public boolean verifyNhsNum(String nhsNumber) {
-        // NHS numbers must be exactly 10 digits long
+
         if (nhsNumber.length() != 10) return false;
 
-        // Convert the NHS number into a list of digits
         ArrayList<Integer> digits = getDigits(nhsNumber);
 
-        // Remove and store the last digit (the check digit)
         int checkDigit = digits.remove(9);
+        int total = 0;
+        int weight = 10;
 
-        int total = 0;     // Sum of weighted digits
-        int weight = 10;   // NHS algorithm uses weights 10 down to 2
-
-        // Multiply each of the first nine digits by a decreasing weight
-        for (int i = 0; i < digits.size(); i++) {
-            total += digits.get(i) * weight;
+        for (int digit : digits) {
+            total += digit * weight;
             weight--;
         }
 
-        // Compute remainder when divided by 11
         int remainder = total % 11;
+        int expected = 11 - remainder;
 
-        // Compute expected check digit using NHS formula
-        int expectedCheck = 11 - remainder;
+        if (expected == 11) expected = 0;
+        if (expected == 10) return false;
 
-        // If result is 11, expected check digit should be 0
-        if (expectedCheck == 11) expectedCheck = 0;
-
-        // If result is 10, the number is invalid
-        if (expectedCheck == 10) return false;
-
-        // Valid if the expected check digit matches the actual one
-        return expectedCheck == checkDigit;
+        return expected == checkDigit;
     }
 
+    public ArrayList<Integer> getDigits(String number) {
+        ArrayList<Integer> result = new ArrayList<>();
+        for (int i = 0; i < number.length(); i++) {
+            result.add(number.charAt(i) - '0');
+        }
+        return result;
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    private void toast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+    }
 }

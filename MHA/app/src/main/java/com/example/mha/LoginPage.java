@@ -17,9 +17,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.mha.network.ApiService;
-import com.example.mha.network.RetrofitClient;
 import com.example.mha.network.UserRequest;
+import com.example.mha.repository.UserRepository;
 
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -28,10 +27,14 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import com.example.mha.CryptClass;
+import com.example.mha.HashClass;
+
 public class LoginPage extends AppCompatActivity {
 
     Button BackBtn, LoginBtn, fingerprintBtn;
     TextView LoginNhs, LoginEmail, LoginDOB;
+    UserRepository userRepo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +48,8 @@ public class LoginPage extends AppCompatActivity {
             return insets;
         });
 
+        userRepo = new UserRepository(this);
+
         BackBtn = findViewById(R.id.Back_Button_login);
         LoginBtn = findViewById(R.id.LoginActivityButton);
         fingerprintBtn = findViewById(R.id.fingerprintBtn);
@@ -53,7 +58,6 @@ public class LoginPage extends AppCompatActivity {
         LoginDOB = findViewById(R.id.LoginDOB);
 
         BackBtn.setOnClickListener(v -> startActivity(new Intent(LoginPage.this, MainActivity.class)));
-
         LoginBtn.setOnClickListener(v -> {
             try {
                 login();
@@ -61,12 +65,11 @@ public class LoginPage extends AppCompatActivity {
                 throw new RuntimeException(e);
             }
         });
-
         fingerprintBtn.setOnClickListener(v -> authenticateFingerprint());
     }
 
     // --------------------------------------------------
-    // NORMAL LOGIN (your original code)
+    // LOGIN USING REPOSITORY (ONLINE + OFFLINE)
     // --------------------------------------------------
     private void login() throws Exception {
         String nhsText = LoginNhs.getText().toString().trim();
@@ -82,68 +85,61 @@ public class LoginPage extends AppCompatActivity {
         String nhsHash = HashClass.sha256(nhsText);
         String dobHash = HashClass.sha256(dobText);
 
-        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-        Call<List<UserRequest>> call = apiService.getUsers();
-
-        call.enqueue(new Callback<List<UserRequest>>() {
+        // USE REPOSITORY
+        userRepo.getUsers(new Callback<List<UserRequest>>() {
             @Override
             public void onResponse(Call<List<UserRequest>> call, Response<List<UserRequest>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    boolean found = false;
 
-                    for (UserRequest user : response.body()) {
-                        if (user.EmailHash.equals(emailHash) &&
-                                user.NHSHash.equals(nhsHash) &&
-                                user.DOBHash.equals(dobHash)) {
-
-                            found = true;
-
-                            int userId = user.UID;
-                            String decryptedName = CryptClass.decrypt(user.FullName);
-                            String decryptedRole = CryptClass.decrypt(user.Role);
-
-                            Toast.makeText(LoginPage.this,
-                                    "Welcome " + decryptedName + " (" + decryptedRole + ")",
-                                    Toast.LENGTH_LONG).show();
-
-                            Log.d("Login", "Login successful for " + decryptedName);
-                            Log.d("Login", "Login UID " + userId);
-                            Log.d("Login", "Login role " + decryptedRole);
-
-                            // SAVE USER INFO FOR FINGERPRINT LOGIN
-                            SharedPreferences prefs = getSharedPreferences("MyPrefs", MODE_PRIVATE);
-                            prefs.edit()
-                                    .putInt("UserId", userId)
-                                    .putString("UserRole", decryptedRole)
-                                    .apply();
-
-                            Intent intent = new Intent(LoginPage.this, MainMenu.class);
-                            intent.putExtra("UserId", userId);
-                            intent.putExtra("UserRole", decryptedRole);
-                            startActivity(intent);
-                            finish();
-                            break;
-                        }
-                    }
-
-                    if (!found) {
-                        Toast.makeText(LoginPage.this, "Invalid credentials", Toast.LENGTH_LONG).show();
-                        Log.d("Login", "Login failed");
-                    }
-
-                } else {
+                if (response.body() == null) {
                     Toast.makeText(LoginPage.this,
-                            "Server error: " + response.code(),
-                            Toast.LENGTH_LONG).show();
+                            "No users found", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                boolean found = false;
+
+                for (UserRequest user : response.body()) {
+
+                    if (user.EmailHash.equals(emailHash) &&
+                            user.NHSHash.equals(nhsHash) &&
+                            user.DOBHash.equals(dobHash)) {
+
+                        found = true;
+
+                        int userId = user.UID;
+                        String decryptedName = CryptClass.decrypt(user.FullName);
+                        String decryptedRole = CryptClass.decrypt(user.Role);
+
+                        Toast.makeText(LoginPage.this,
+                                "Welcome " + decryptedName + " (" + decryptedRole + ")",
+                                Toast.LENGTH_LONG).show();
+
+                        // SAVE FOR FINGERPRINT LOGIN
+                        SharedPreferences prefs = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+                        prefs.edit()
+                                .putInt("UserId", userId)
+                                .putString("UserRole", decryptedRole)
+                                .apply();
+
+                        Intent intent = new Intent(LoginPage.this, MainMenu.class);
+                        intent.putExtra("UserId", userId);
+                        intent.putExtra("UserRole", decryptedRole);
+                        startActivity(intent);
+                        finish();
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    Toast.makeText(LoginPage.this, "Invalid credentials", Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(Call<List<UserRequest>> call, Throwable t) {
                 Toast.makeText(LoginPage.this,
-                        "Network error: " + t.getMessage(),
+                        "Error: " + t.getMessage(),
                         Toast.LENGTH_LONG).show();
-                Log.e("Login", "Network error: " + t.getMessage());
             }
         });
     }
@@ -179,7 +175,7 @@ public class LoginPage extends AppCompatActivity {
 
                         if (savedUserId == -1 || savedRole == null) {
                             Toast.makeText(LoginPage.this,
-                                    "Please log in normally once before using fingerprint login",
+                                    "Please log in normally once first",
                                     Toast.LENGTH_LONG).show();
                             return;
                         }

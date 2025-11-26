@@ -12,9 +12,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.mha.network.ApiService;
-import com.example.mha.network.RetrofitClient;
 import com.example.mha.network.UserRequest;
+import com.example.mha.repository.UserRepository;
+import com.example.mha.CryptClass;
 
 import java.util.List;
 
@@ -23,8 +23,11 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
+
     Button registerBtn, decryptBtn, encryptBtn, loginBtn;
     TextView userListText;
+
+    UserRepository userRepo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +47,8 @@ public class MainActivity extends AppCompatActivity {
         loginBtn = findViewById(R.id.LoginButton);
         userListText = findViewById(R.id.UserListText);
 
-        // Buttons
+        userRepo = new UserRepository(this);
+
         registerBtn.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, RegisterPage.class))
         );
@@ -53,41 +57,44 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, LoginPage.class))
         );
 
-        decryptBtn.setOnClickListener(v -> fetchAndDisplayUsers(false));
-        encryptBtn.setOnClickListener(v -> fetchAndDisplayUsers(true));
+        decryptBtn.setOnClickListener(v -> loadUsers(false));
+        encryptBtn.setOnClickListener(v -> loadUsers(true));
 
-        // Fetch encrypted users by default
-        fetchAndDisplayUsers(true);
+        loadUsers(true); // default encrypted
     }
 
-    private void fetchAndDisplayUsers(boolean encrypted) {
-        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-        apiService.getUsers().enqueue(new Callback<List<UserRequest>>() {
+    private void loadUsers(boolean encrypted) {
+
+        userListText.setText("Loading...");
+
+        userRepo.getUsers(new Callback<List<UserRequest>>() {
             @Override
             public void onResponse(Call<List<UserRequest>> call, Response<List<UserRequest>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    displayUsers(response.body(), encrypted);
-                } else {
-                    userListText.setText("No users found or server error: " + response.code());
+
+                List<UserRequest> users = response.body();
+
+                if (users == null || users.isEmpty()) {
+                    userListText.setText("No users found.");
+                    return;
                 }
+
+                displayUsers(users, encrypted);
             }
 
             @Override
             public void onFailure(Call<List<UserRequest>> call, Throwable t) {
-                userListText.setText("Network error: " + t.getMessage());
-                Log.e("API", "Network error: " + t.getMessage());
+                userListText.setText("Error loading users: " + t.getMessage());
+                Log.e("Main", "Repo failed: ", t);
             }
         });
     }
 
     private void displayUsers(List<UserRequest> users, boolean encrypted) {
-        if (users.isEmpty()) {
-            userListText.setText("No users registered yet.");
-            return;
-        }
 
         StringBuilder sb = new StringBuilder();
+
         for (UserRequest user : users) {
+
             String name = encrypted ? user.FullName : CryptClass.decrypt(user.FullName);
             String email = encrypted ? user.Email : CryptClass.decrypt(user.Email);
             String nhs = encrypted ? user.NHSnum : CryptClass.decrypt(user.NHSnum);
@@ -103,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
                     .append("\nRole: ").append(role)
                     .append("\n---------------------\n");
         }
+
         userListText.setText(sb.toString());
     }
 }
