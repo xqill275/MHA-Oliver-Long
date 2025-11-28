@@ -35,8 +35,8 @@ public class MainMenu extends AppCompatActivity {
         AppDatabase db = AppDatabase.getInstance(this);
         int userId = getIntent().getIntExtra("UserId", -1);
         String userRole = getIntent().getStringExtra("UserRole");
-        Log.d("MainMenu", userRole);
-        Log.d("MainMenu", String.valueOf(userId));
+        //Log.d("MainMenu", userRole);
+        //Log.d("MainMenu", String.valueOf(userId));
         if (userId == -1) {
             startActivity(new Intent(MainMenu.this, MainActivity.class));
             finish();

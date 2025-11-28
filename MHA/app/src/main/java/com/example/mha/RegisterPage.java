@@ -57,7 +57,7 @@ public class RegisterPage extends AppCompatActivity {
             try {
                 validateForm();
             } catch (Exception e) {
-                Log.e("Register", "Unexpected error", e);
+                //Log.e("Register", "Unexpected error", e);
                 toast("Unexpected error: " + e.getMessage());
             }
         });
