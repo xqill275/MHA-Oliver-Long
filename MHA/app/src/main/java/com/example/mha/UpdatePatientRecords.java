@@ -12,6 +12,7 @@ import com.example.mha.repository.VitalsRepository;
 import com.example.mha.database.entities.RecordEntity;
 import com.example.mha.database.entities.VitalEntity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -36,7 +37,7 @@ public class UpdatePatientRecords extends AppCompatActivity {
     private Spinner userSpinner;
     private EditText allergiesInput, medicationsInput, problemsInput;
     private EditText temperatureInput, heartRateInput, systolicInput, diastolicInput;
-    private Button saveButton, saveVitalsButton;
+    private Button saveButton, saveVitalsButton, updateRecordsBack;
 
     private List<UserRequest> users = new ArrayList<>();
     private List<String> userNames = new ArrayList<>();
@@ -62,6 +63,19 @@ public class UpdatePatientRecords extends AppCompatActivity {
         diastolicInput = findViewById(R.id.diastolicInput);
         saveButton = findViewById(R.id.saveButton);
         saveVitalsButton = findViewById(R.id.saveVitalsButton);
+
+        updateRecordsBack = findViewById(R.id.updateRecordsBack);
+
+
+        int userId = getIntent().getIntExtra("UserId", -1);
+        String userRole = getIntent().getStringExtra("UserRole");
+
+        updateRecordsBack.setOnClickListener(v -> {
+            Intent Backintent = new Intent(UpdatePatientRecords.this, MedicalRecords.class);
+            Backintent.putExtra("UserId", userId);
+            Backintent.putExtra("UserRole", userRole);
+            startActivity(Backintent);
+        });
 
         fetchUsersFromApi();
 

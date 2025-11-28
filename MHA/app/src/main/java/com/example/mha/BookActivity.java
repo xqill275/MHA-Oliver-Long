@@ -1,5 +1,6 @@
 package com.example.mha;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -31,7 +32,7 @@ import retrofit2.Response;
 public class BookActivity extends AppCompatActivity {
 
     private Spinner spinnerHospital, spinnerTime;
-    private Button btnBook;
+    private Button btnBook, BookBack;
 
     private ApiService apiService;
     private HospitalRepository hospitalRepo;
@@ -44,6 +45,8 @@ public class BookActivity extends AppCompatActivity {
     private int selectedHospitalId = -1;
     private AppointmentRequest selectedAppointment;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,16 +54,26 @@ public class BookActivity extends AppCompatActivity {
         setContentView(R.layout.activity_book);
 
         userId = getIntent().getIntExtra("UserId", -1);
+        String userRole = getIntent().getStringExtra("UserRole");
 
         spinnerHospital = findViewById(R.id.spinnerHospital);
         spinnerTime = findViewById(R.id.spinnerTime);
         btnBook = findViewById(R.id.btnBook);
+        BookBack = findViewById(R.id.BookBack);
 
         apiService = RetrofitClient.getClient().create(ApiService.class);
         hospitalRepo = new HospitalRepository(this);
         appointmentRepo = new AppointmentRepository(this);
 
         loadHospitals();
+
+        BookBack.setOnClickListener(v -> {
+            Intent Backintent = new Intent(BookActivity.this, ApointmentActivity.class);
+            Backintent.putExtra("UserId", userId);
+            Backintent.putExtra("UserRole", userRole);
+            startActivity(Backintent);
+        });
+
 
         spinnerHospital.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override

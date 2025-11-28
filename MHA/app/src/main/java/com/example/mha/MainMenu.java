@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.content.Intent;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,13 +16,13 @@ import com.example.mha.database.AppDatabase;
 
 
 public class MainMenu extends AppCompatActivity {
-    Button apointBtn, adminBtn, recordBtn;
+    Button apointBtn, adminBtn, recordBtn, logOutBtn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main_menu);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.RecordsBack), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
@@ -31,6 +30,7 @@ public class MainMenu extends AppCompatActivity {
         apointBtn = findViewById(R.id.AppointmentBtn);
         adminBtn = findViewById(R.id.AdminButton);
         recordBtn = findViewById(R.id.RecordsBtn);
+        logOutBtn = findViewById(R.id.LogOutBtn);
 
         AppDatabase db = AppDatabase.getInstance(this);
         int userId = getIntent().getIntExtra("UserId", -1);
@@ -67,14 +67,27 @@ public class MainMenu extends AppCompatActivity {
         apointBtn.setOnClickListener(v -> {
             Intent Apointintent = new Intent(MainMenu.this, ApointmentActivity.class);
             Apointintent.putExtra("UserId", userId);
+            Apointintent.putExtra("UserRole", userRole);
             startActivity(Apointintent);
         });
-        adminBtn.setOnClickListener(v ->
-                startActivity(new Intent(MainMenu.this, AdminPage.class))
-        );
+        adminBtn.setOnClickListener(v -> {
+            Intent adminIntent = new Intent(MainMenu.this, AdminPage.class);
+            adminIntent.putExtra("UserId", userId);
+            adminIntent.putExtra("UserRole", userRole);
+            startActivity(adminIntent);
+        });
         recordBtn.setOnClickListener(v -> {
-            startActivity(new Intent(MainMenu.this, MedicalRecords.class));
+            Intent recordIntent = new Intent(MainMenu.this, MedicalRecords.class);
+            recordIntent.putExtra("UserId", userId);
+            recordIntent.putExtra("UserRole", userRole);
+            startActivity(recordIntent);
         });
 
+
+        logOutBtn.setOnClickListener(v -> {
+            startActivity(new Intent(MainMenu.this, MainActivity.class));
+            finish();
+        });
     }
+
 }

@@ -1,5 +1,6 @@
 package com.example.mha;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -33,7 +34,7 @@ public class RescheduleActivity extends AppCompatActivity {
 
     private TextView tvCurrentAppointment;
     private Spinner spinnerNewTime;
-    private Button btnConfirmReschedule;
+    private Button btnConfirmReschedule, btnRescheduleBack;
     private ApiService apiService;
 
     private int userId, oldAppointmentId, hospitalId;
@@ -48,11 +49,16 @@ public class RescheduleActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_reschedule);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.RecordsBack), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        int userId = getIntent().getIntExtra("UserId", -1);
+        String userRole = getIntent().getStringExtra("UserRole");
+
+
 
         // UI references
         tvCurrentAppointment = findViewById(R.id.tvCurrentAppointment);
@@ -64,15 +70,25 @@ public class RescheduleActivity extends AppCompatActivity {
         //  Get data from intent
         oldAppointmentId = getIntent().getIntExtra("AppointmentID", -1);
         hospitalId = getIntent().getIntExtra("HospitalID", -1);
-        userId = getIntent().getIntExtra("UserID", -1);
         oldDate = CryptClass.decrypt(getIntent().getStringExtra("OldDate"));
         oldTime = CryptClass.decrypt(getIntent().getStringExtra("OldTime"));
+
+        btnRescheduleBack = findViewById(R.id.RescheduleBack);
+
 
         //  Display current appointment
         tvCurrentAppointment.setText("Current: " + oldDate + " at " + oldTime);
 
         //  Load available new time slots for the same hospital
         loadAvailableAppointments();
+
+        btnRescheduleBack.setOnClickListener(v -> {
+            Intent Backintent = new Intent(RescheduleActivity.this, ViewBookingActivity.class);
+            Backintent.putExtra("UserId", userId);
+            Backintent.putExtra("UserRole", userRole);
+            startActivity(Backintent);
+
+        });
 
         //  When confirm is clicked
         btnConfirmReschedule.setOnClickListener(v -> {
@@ -85,6 +101,8 @@ public class RescheduleActivity extends AppCompatActivity {
             cancelAndBook(selectedAppointment);
         });
     }
+
+
 
     private void loadAvailableAppointments() {
         apiService.getAppointments().enqueue(new Callback<List<AppointmentRequest>>() {

@@ -1,6 +1,6 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/main"
+    android:id="@+id/RecordsBack"
     android:orientation="vertical"
     android:padding="16dp"
     android:layout_width="match_parent"
@@ -26,4 +26,10 @@
         android:layout_height="wrap_content"
         android:text="Confirm Reschedule"
         android:layout_marginTop="20dp"/>
+
+    <Button
+        android:id="@+id/RescheduleBack"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="cancel" />
 </LinearLayout>
