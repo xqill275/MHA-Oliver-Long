@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<List<UserRequest>> call, Throwable t) {
                 userListText.setText("Error loading users: " + t.getMessage());
-                Log.e("Main", "Repo failed: ", t);
+                //Log.e("Main", "Repo failed: ", t);
             }
         });
     }

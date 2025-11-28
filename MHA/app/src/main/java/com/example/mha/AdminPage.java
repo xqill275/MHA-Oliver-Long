@@ -148,7 +148,7 @@ public class AdminPage extends AppCompatActivity {
                     try {
                         userNames.add(CryptClass.decrypt(user.FullName) + " (ID: " + user.UID + ")");
                     } catch (Exception e) {
-                        Log.e("Admin", "Decrypt Error", e);
+
                     }
                 }
 

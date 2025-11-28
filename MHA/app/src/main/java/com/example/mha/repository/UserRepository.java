@@ -105,7 +105,7 @@ public class UserRepository {
                     u.DOBHash
             );
 
-            // ✅ CRITICAL: restore the REAL server UID for offline mode
+            // CRITICAL: restore the REAL server UID for offline mode
             req.UID = u.UID;
 
             list.add(req);
@@ -212,7 +212,7 @@ public class UserRepository {
 
         } else {
 
-            // ✅ OFFLINE → ROOM ONLY
+            // OFFLINE → ROOM ONLY
             AppDatabase.databaseWriteExecutor.execute(() -> {
                 usersDao.updateRole(uid, encryptedRole);
                 callback.onSuccess(); // treat as success offline

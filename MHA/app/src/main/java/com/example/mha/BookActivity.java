@@ -128,7 +128,7 @@ public class BookActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<HospitalRequest>> call, Throwable t) {
-                Log.e("BookActivity", "Hospitals load error: " + Objects.requireNonNull(t.getMessage()));
+                //Log.e("BookActivity", "Hospitals load error: " + Objects.requireNonNull(t.getMessage()));
                 loadHospitalsOffline();
             }
         });
@@ -199,7 +199,7 @@ public class BookActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<AppointmentRequest>> call, Throwable t) {
-                Log.e("BookActivity", "Appointments load error: " + Objects.requireNonNull(t.getMessage()));
+                //Log.e("BookActivity", "Appointments load error: " + Objects.requireNonNull(t.getMessage()));
                 loadAvailableAppointmentsOffline(hospitalId);
             }
         });
