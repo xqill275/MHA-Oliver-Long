@@ -37,11 +37,12 @@ public class ViewPatientRecords extends AppCompatActivity {
 
     private Spinner userSpinner;
     private TextView recordText, vitalsText;
-    Button scanBarcodeBtn;
+    Button scanBarcodeBtn, RecordsBack;
 
     private List<UserRequest> users = new ArrayList<>();
     private List<String> userNames = new ArrayList<>();
     private int selectedUserId = -1;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,13 +54,26 @@ public class ViewPatientRecords extends AppCompatActivity {
         recordText = findViewById(R.id.recordText);
         vitalsText = findViewById(R.id.vitalsText);
         scanBarcodeBtn = findViewById(R.id.scanBarcodeBtn);
+        RecordsBack = findViewById(R.id.RecordsBack);
+
 
         apiService = RetrofitClient.getClient().create(ApiService.class);
         userRepo = new UserRepository(this);
         recordRepo = new RecordRepository(this);
         vitalsRepo = new VitalsRepository(this);
 
+        int userId = getIntent().getIntExtra("UserId", -1);
+        String userRole = getIntent().getStringExtra("UserRole");
+
+
         fetchUsers();
+
+        RecordsBack.setOnClickListener(v -> {
+            Intent Backintent = new Intent(ViewPatientRecords.this, MedicalRecords.class);
+            Backintent.putExtra("UserId", userId);
+            Backintent.putExtra("UserRole", userRole);
+            startActivity(Backintent);
+        });
 
         scanBarcodeBtn.setOnClickListener(v -> {
             Intent intent = new Intent(ViewPatientRecords.this, BarcodeScannerActivity.class);

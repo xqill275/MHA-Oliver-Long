@@ -1,6 +1,8 @@
 package com.example.mha;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -25,6 +27,7 @@ import retrofit2.Response;
 public class ViewBookingActivity extends AppCompatActivity {
 
     private AppointmentRepository appointmentRepo;
+    Button ViewBookBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,9 +38,20 @@ public class ViewBookingActivity extends AppCompatActivity {
         appointmentRepo = new AppointmentRepository(this);
 
         int userId = getIntent().getIntExtra("UserId", -1);
+        String userRole = getIntent().getStringExtra("UserRole");
+
         if (userId != -1) {
             fetchBookings(userId);
         }
+
+        ViewBookBack = findViewById(R.id.ViewBookBack);
+        ViewBookBack.setOnClickListener(v -> {
+            Intent Backintent = new Intent(ViewBookingActivity.this, ApointmentActivity.class);
+            Backintent.putExtra("UserId", userId);
+            Backintent.putExtra("UserRole", userRole);
+            startActivity(Backintent);
+        });
+
     }
 
     private void fetchBookings(int userId) {

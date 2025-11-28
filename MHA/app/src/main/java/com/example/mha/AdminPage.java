@@ -1,5 +1,6 @@
 package com.example.mha;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
@@ -31,7 +32,7 @@ import retrofit2.Response;
 public class AdminPage extends AppCompatActivity {
 
     Spinner userSpinner, roleSpinner, hospitalSpinner;
-    Button updateRoleButton, addHospitalButton, addAppointmentButton;
+    Button updateRoleButton, addHospitalButton, addAppointmentButton, BackBtn;
     EditText hospitalNameInput, hospitalCityInput, hospitalPostcodeInput;
     EditText appointmentDateInput, appointmentTimeInput;
 
@@ -42,6 +43,7 @@ public class AdminPage extends AppCompatActivity {
 
     ApiService apiService;
     UserRepository userRepo;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +63,19 @@ public class AdminPage extends AppCompatActivity {
         appointmentDateInput = findViewById(R.id.appointmentDateInput);
         appointmentTimeInput = findViewById(R.id.appointmentTimeInput);
         addAppointmentButton = findViewById(R.id.addAppointmentButton);
+        BackBtn = findViewById(R.id.AdminBackButton);
+        int userId = getIntent().getIntExtra("UserId", -1);
+        String userRole = getIntent().getStringExtra("UserRole");
+
+
+
+        BackBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(AdminPage.this, MainMenu.class);
+            intent.putExtra("UserId", userId);
+            intent.putExtra("UserRole", userRole);
+            startActivity(intent);
+        });
+
 
         userRepo = new UserRepository(this);
         apiService = RetrofitClient.getClient().create(ApiService.class);
